@@ -48,7 +48,7 @@ export const NavbarWrapper = ({ children }: Props) => {
             </button>
           </li>
           <li>
-            <span className="font-bold text-primary">Chat App</span>
+            <span className="font-bold text-primary">Admin Dashboard</span>
           </li>
           <li>
            <LocationModal/>
