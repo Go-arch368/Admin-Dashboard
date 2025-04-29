@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["i.pravatar.cc"],
   },
+  reactStrictMode: true,
   eslint: {
     dirs: ["src"],
     ignoreDuringBuilds: true,

@@ -69,7 +69,7 @@ export const Layout = ({ children }: Props) => {
           </main>
         </div>
 
-        {/* Footer sticks below content */}
+        {/* Footer sticks below content */}   
         <div className="relative z-50">
           <Footer />
         </div>

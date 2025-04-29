@@ -11,6 +11,7 @@ import { User2 } from "lucide-react";
 import React, { useState } from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
+import { useClerk } from "@clerk/nextjs"; // 👈 Clerk hook
 
 const Divider = () => (
   <hr className="my-2 border-t border-gray-200 dark:border-gray-700" />
@@ -26,14 +27,17 @@ const statusOptions = [
 export const UserDropdown = () => {
   const { theme } = useTheme();
   const router = useRouter();
+  const { signOut } = useClerk(); // 👈 useClerk to access signOut
 
   const isDark = theme === "dark";
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0]);
-  const [isOpen, setIsOpen] = useState(false); // <-- track open state
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/login");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();         // 👈 Properly signs out with Clerk
+    router.push("/login");   // 👈 Then redirects to login
   };
+
   return (
     <Dropdown
       shouldBlockScroll={false}
@@ -63,7 +67,7 @@ export const UserDropdown = () => {
         <DropdownItem key="profile" className="h-16">
           <User
             name="Signed in as"
-            description="zoey@example.com"
+            description="user@example.com"
             classNames={{
               name: `font-bold text-base ${isDark ? "text-white" : "text-black"}`,
               description: `font-medium text-sm ${isDark ? "text-gray-400" : "text-default-500"}`,
@@ -82,7 +86,6 @@ export const UserDropdown = () => {
           My Profile
         </DropdownItem>
 
-        {/* Status submenu */}
         <DropdownItem key="status" className="group relative text-base">
           <div className="flex items-center justify-between">
             <span className={`${isDark ? "text-white" : "text-black"}`}>
