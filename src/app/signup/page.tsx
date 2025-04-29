@@ -2,12 +2,10 @@
 
 import { SignUp } from '@clerk/nextjs';
 
-const SignUpPage = () => {
-  return (
+const SignUpPage = () => (
     <div className="flex justify-center items-center h-screen">
       <SignUp redirectUrl="/dashboard" />
     </div>
   );
-};
 
 export default SignUpPage;

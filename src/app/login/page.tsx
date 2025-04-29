@@ -4,12 +4,10 @@
 
 import { SignIn } from '@clerk/nextjs';
 
-const LoginPage = () => {
-  return (
+const LoginPage = () => (
     <div className="flex justify-center items-center h-screen">
       <SignIn redirectUrl="/dashboard" />
     </div>
   );
-};
 
 export default LoginPage;
