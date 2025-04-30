@@ -51,7 +51,7 @@ export const Layout = ({ children }: Props) => {
         </div>
 
         {/* Main content and sidebar */}
-        <div className="flex flex-1 mt-[52px]">
+        <div className="flex flex-1">
           <div
             className={`fixed left-0 z-40 transition-all duration-300 ease-in-out ${
               sidebarOpen ? "w-50" : "w-20"
@@ -61,7 +61,7 @@ export const Layout = ({ children }: Props) => {
           </div>
 
           <main
-            className={`transition-all duration-300 ease-in-out ${
+            className={` transition-all duration-300 ease-in-out ${
               sidebarOpen ? "ml-44" : "ml-20"
             } flex-1 overflow-auto`}
           >
@@ -69,7 +69,7 @@ export const Layout = ({ children }: Props) => {
           </main>
         </div>
 
-        {/* Footer sticks below content */}   
+        {/* Footer */}
         <div className="relative z-50">
           <Footer />
         </div>
