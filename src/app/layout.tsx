@@ -44,7 +44,7 @@ export default function RootLayout({
                 <SignUpButton />
               </SignedOut>
               <SignedIn>
-                <UserButton />
+                {/* <UserButton /> */}
                 {/* Add DarkModeSwitch here */}
                 {/* <DarkModeSwitch /> */}
               </SignedIn>

@@ -60,13 +60,13 @@ export const Layout = ({ children }: Props) => {
             <SidebarWrapper />
           </div>
 
-          <main
-            className={` transition-all duration-300 ease-in-out ${
-              sidebarOpen ? "ml-44" : "ml-20"
-            } flex-1 overflow-auto`}
-          >
-            {children}
-          </main>
+        <main
+  className={`transition-all duration-300 ease-in-out ${
+    sidebarOpen ? "ml-44" : "ml-20"
+  } flex-1 overflow-auto -mt-3`}  // Negative margin to lift content up
+>
+  {children}
+</main>
         </div>
 
         {/* Footer */}
