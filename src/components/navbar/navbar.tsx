@@ -4,7 +4,7 @@ import React from "react";
 import { Box } from "../styles/box";
 import { UserDropdown } from "./user-dropdown";
 import { useTheme } from "next-themes";
-import { DarkModeSwitch } from "./darkmodeswitch";
+import DarkModeSwitch from "./darkmodeswitch";
 import FullScreenToggle from "./FullScreenToggle";
 import { useSidebarContext } from "../layout/layout-context";
 import { Menu } from "lucide-react";
