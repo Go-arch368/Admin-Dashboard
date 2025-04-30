@@ -12,6 +12,9 @@ export const SidebarWrapper = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
+  // Icon shift styling: slightly down and to the right
+  const iconShiftClass = "pt-1 pl-1";
+
   return (
     <>
       {collapsed && (
@@ -21,26 +24,32 @@ export const SidebarWrapper = () => {
         />
       )}
       <aside
-        className={`transition-all duration-300 ease-in-out ${collapsed ? "w-0 md:w-20" : "w-full md:w-44"} ${isDark ? "border-gray-700 bg-black text-white" : "border-gray-200 bg-white text-gray-900"} h-auto overflow-hidden border-r md:h-auto`}
+        className={`fixed top-14 left-0 z-20 transition-all duration-300 ease-in-out ${
+          collapsed ? "w-0 md:w-20" : "w-full md:w-44"
+        } ${
+          isDark
+            ? "border-gray-700 bg-black text-white"
+            : "border-gray-200 bg-white text-gray-900"
+        } h-[calc(100vh-56px)] overflow-hidden border-r`}
       >
-        <div className="flex min-h-screen flex-col">
+        <div className="flex h-full flex-col">
           <div className="flex-1 space-y-6 overflow-y-auto p-4 transition-all">
             <SidebarItem
               title={collapsed ? "" : "Dashboard"}
-              icon={<LayoutDashboard />}
+              icon={<LayoutDashboard className={iconShiftClass} />}
               isActive={pathname === "/dashboard"}
               href="/dashboard"
             />
             <SidebarItem
-              isActive={pathname === "/content"}
               title={collapsed ? "" : "Content"}
-              icon={<TableOfContents />}
+              icon={<TableOfContents className={iconShiftClass} />}
+              isActive={pathname === "/content"}
               href="/content"
             />
             <SidebarItem
-              isActive={pathname === "/chats"}
               title={collapsed ? "" : "Chats"}
-              icon={<MessageCircle />}
+              icon={<MessageCircle className={iconShiftClass} />}
+              isActive={pathname === "/chats"}
               href="/chats"
             />
           </div>
