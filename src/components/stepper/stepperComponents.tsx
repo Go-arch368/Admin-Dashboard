@@ -1,7 +1,6 @@
-
 "use client";
 import clsx from "clsx";
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Home,
@@ -14,56 +13,10 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-interface FAQ {
-  question: string;
-  answer: string;
-}
-
-interface CTA {
-  call: string;
-  bookUrl: string;
-  getDirections: string;
-}
-
-interface Service {
-  name: string;
-  price: string;
-}
-
-interface Location {
-  address: string;
-  city: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-}
-
-interface Contact {
-  phone?: string;
-  email?: string;
-  website?: string;
-}
-
-interface Timings {
-  [key: string]: string;
-}
-
-interface ApiResponse {
-  welcome?: { completed?: boolean; category?: string; subcategory?: string };
-  gallery?: string[];
-  faqs?: FAQ[];
-  cta?: CTA;
-  business?: { businessName?: string; description?: string };
-  location?: Location;
-  contact?: Contact;
-  services?: Service[];
-  timings?: Timings;
-}
-
 interface Step {
   label: string;
   path: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: React.ComponentType<any>;
   storageKey: string;
   apiResponseKey: string | string[];
 }
@@ -113,47 +66,45 @@ const steps: Step[] = [
   },
 ];
 
-const StepperComponents: React.FC = () => {
+export default function Stepper() {
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const [hasData, setHasData] = useState<Record<string, boolean>>({});
   const [isPublished, setIsPublished] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const currentStep =
     steps.findIndex((step) => step.path === pathname) === -1
       ? 0
       : steps.findIndex((step) => step.path === pathname);
 
-  // Preload all step pages with error handling
   useEffect(() => {
-    steps.forEach((step) => {
-      try {
-        router.prefetch(step.path);
-      } catch (error) {
-        console.warn(`Failed to prefetch ${step.path}:`, error);
-      }
-    });
     setIsMounted(true);
-  }, [router]);
+  }, []);
 
-  const checkData = useCallback(() => {
+  const checkData = React.useCallback(() => {
     if (!isMounted) return;
 
+    // Check if the business is published using publishFormData
+    const publishFormDataRaw = localStorage.getItem("publishFormData");
+    let publishFormData = { published: false };
+    try {
+      publishFormData = publishFormDataRaw ? JSON.parse(publishFormDataRaw) : { published: false };
+    } catch (error) {
+      console.error("Error parsing publishFormData:", error);
+    }
+    setIsPublished(publishFormData.published);
+
     const apiResponse = localStorage.getItem("apiResponse");
-    let apiData: ApiResponse = {};
-    let hasApiResponse = false;
+    let apiData: Record<string, any> = {};
 
     try {
       if (apiResponse && apiResponse !== '""') {
         apiData = JSON.parse(apiResponse);
-        hasApiResponse = true;
       }
     } catch (error) {
       console.error("Error parsing apiResponse:", error);
     }
-    setIsPublished(hasApiResponse);
 
     const dataPresence = steps.reduce((acc, step) => {
       const formDataExists = step.storageKey
@@ -162,17 +113,17 @@ const StepperComponents: React.FC = () => {
         : false;
 
       let apiDataExists = false;
-      if (hasApiResponse && step.apiResponseKey) {
+      if (step.apiResponseKey) {
         if (step.apiResponseKey === "any") {
-          apiDataExists = true;
+          apiDataExists = !!apiResponse && apiResponse !== '""';
         } else if (Array.isArray(step.apiResponseKey)) {
           apiDataExists = step.apiResponseKey.every(
-            (key) => key in apiData && apiData[key as keyof ApiResponse] && Object.keys(apiData[key as keyof ApiResponse]!).length > 0
+            (key) => apiData[key] && Object.keys(apiData[key]).length > 0
           );
         } else {
           apiDataExists =
-            !!apiData[step.apiResponseKey as keyof ApiResponse] &&
-            Object.keys(apiData[step.apiResponseKey as keyof ApiResponse] || {}).length > 0;
+            apiData[step.apiResponseKey] &&
+            Object.keys(apiData[step.apiResponseKey]).length > 0;
         }
       }
 
@@ -190,7 +141,7 @@ const StepperComponents: React.FC = () => {
     const handleStorageChange = (e: StorageEvent) => {
       if (
         e.storageArea === localStorage &&
-        (steps.some((step) => step.storageKey === e.key) || e.key === "apiResponse")
+        (steps.some((step) => step.storageKey === e.key) || e.key === "apiResponse" || e.key === "publishFormData")
       ) {
         checkData();
       }
@@ -200,39 +151,26 @@ const StepperComponents: React.FC = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [isMounted, checkData]);
 
-  const getVisibleSteps = useCallback(() => {
+  const getVisibleSteps = () => {
     if (currentStep <= 1) return steps.slice(0, 3);
     if (currentStep >= steps.length - 1) return steps.slice(-3);
     return steps.slice(currentStep - 1, currentStep + 2);
-  }, [currentStep]);
+  };
 
-  const handleStepNavigation = useCallback(
-    (index: number) => {
-      if (isTransitioning || steps[index].path === pathname) return;
+  const handleStepNavigation = (index: number) => {
+    router.push(steps[index].path);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
 
-      setIsTransitioning(true);
-      router.push(steps[index].path, { scroll: false });
+  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
+    if (event.key === "Enter" || event.key === " ") {
+      handleStepNavigation(index);
+    }
+  };
 
-      // Reset transition state after animation duration
-      setTimeout(() => {
-        setIsTransitioning(false);
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
-      }, 400); // Increased to 400ms to ensure animation completion
-    },
-    [isTransitioning, pathname, router]
-  );
-
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent, index: number) => {
-      if (event.key === "Enter" || event.key === " ") {
-        handleStepNavigation(index);
-      }
-    },
-    [handleStepNavigation]
-  );
-
+  // Animation variants for steps
   const stepVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 10 },
     visible: {
@@ -249,122 +187,110 @@ const StepperComponents: React.FC = () => {
     exit: { opacity: 0, scale: 0.8, y: -10 },
   };
 
-  const renderStepCircle = useCallback(
-    (index: number) => {
-      const Icon = steps[index].icon;
-      const isCurrent = index === currentStep;
-      const hasStepData = hasData[steps[index].path] || isPublished;
-      const isBeforeCurrent = index < currentStep;
+  const renderStepCircle = (index: number) => {
+    const Icon = steps[index].icon;
+    const isCurrent = index === currentStep;
+    const hasStepData = hasData[steps[index].path];
+    const isBeforeCurrent = index < currentStep;
 
-      const circleClasses = clsx(
-        "z-10 flex items-center justify-center rounded-full border-2 text-sm font-semibold bg-white cursor-pointer relative outline-none",
-        {
-          "h-10 w-10 border-green-600 text-green-600":
-            (hasStepData || isBeforeCurrent) || isCurrent,
-          "h-8 w-8": !isCurrent,
-          "border-gray-300 text-gray-400":
-            !hasStepData && !isBeforeCurrent && !isCurrent,
-          "opacity-50 cursor-not-allowed": isTransitioning,
-        }
-      );
+    const circleClasses = clsx(
+      "z-10 flex items-center justify-center rounded-full border-2 text-sm font-semibold bg-white cursor-pointer relative outline-none",
+      {
+        "h-10 w-10 border-green-600 text-green-600": (hasStepData || isBeforeCurrent) || isCurrent,
+        "h-8 w-8": !isCurrent,
+        "border-gray-300 text-gray-400": !hasStepData && !isBeforeCurrent && !isCurrent,
+      }
+    );
 
-      return (
+    return (
+      <motion.div
+        id={`step-${index}`}
+        className={circleClasses}
+        role="button"
+        tabIndex={0}
+        onClick={() => handleStepNavigation(index)}
+        onKeyDown={(e) => handleKeyDown(e, index)}
+        aria-label={`Go to ${steps[index].label} step`}
+        whileTap={{ scale: 0.9 }}
+        layout
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        <AnimatePresence>
+          {isCurrent && (
+            <motion.div
+              className="absolute -inset-2 rounded-full border-2 border-orange-600 pointer-events-none"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15, duration: 0.2 }}
+            />
+          )}
+        </AnimatePresence>
         <motion.div
-          id={`step-${index}`}
-          className={circleClasses}
-          role="button"
-          tabIndex={0}
-          onClick={() => handleStepNavigation(index)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
-          aria-label={`Go to ${steps[index].label} step`}
-          whileTap={{ scale: isTransitioning ? 1 : 0.9 }}
           layout
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          <AnimatePresence>
-            {isCurrent && (
-              <motion.div
-                className="absolute -inset-2 rounded-full border-2 border-orange-600 pointer-events-none"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15, duration: 0.2 }}
-              />
-            )}
-          </AnimatePresence>
-          <motion.div
-            layout
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          >
-            <Icon width={isCurrent ? 22 : 20} height={isCurrent ? 22 : 20} aria-hidden="true" />
-          </motion.div>
+          <Icon size={isCurrent ? 22 : 20} aria-hidden="true" />
         </motion.div>
-      );
-    },
-    [currentStep, hasData, isPublished, isTransitioning, handleStepNavigation, handleKeyDown]
-  );
+      </motion.div>
+    );
+  };
 
-  const renderStepLabel = useCallback(
-    (index: number) => {
-      const isCurrent = index === currentStep;
-      const hasStepData = hasData[steps[index].path] || isPublished;
-      const isBeforeCurrent = index < currentStep;
+  const renderStepLabel = (index: number) => {
+    const isCurrent = index === currentStep;
+    const hasStepData = hasData[steps[index].path];
+    const isBeforeCurrent = index < currentStep;
 
-      const labelClasses = clsx(
-        "mt-3 px-1 text-xs text-center max-w-[100px] flex items-center gap-1 font-semibold transition-colors duration-300",
-        {
-          "text-green-600 text-sm": isCurrent,
-          "text-green-600": (hasStepData || isBeforeCurrent) && !isCurrent,
-          "text-gray-600": !hasStepData && !isBeforeCurrent && !isCurrent,
-        }
-      );
+    const labelClasses = clsx(
+      "mt-3 px-1 text-xs text-center max-w-[100px] flex items-center gap-1 font-semibold transition-colors duration-300",
+      {
+        "text-green-600 text-sm": isCurrent,
+        "text-green-600": (hasStepData || isBeforeCurrent) && !isCurrent,
+        "text-gray-600": !hasStepData && !isBeforeCurrent && !isCurrent,
+      }
+    );
 
-      return (
-        <motion.label
-          htmlFor={`step-${index}`}
-          className={labelClasses}
-          title={steps[index].label}
-          initial={{ opacity: 0.7, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
-          <span className="truncate">{steps[index].label}</span>
-          <AnimatePresence>
-            {(hasStepData || isBeforeCurrent) && (
-              <motion.span
-                className="ml-1 flex h-5 w-5 items-center justify-center rounded-full flex-shrink-0 bg-green-600 text-white"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                aria-hidden="true"
-              >
-                <BadgeCheck size={12} strokeWidth={2} />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.label>
-      );
-    },
-    [currentStep, hasData, isPublished]
-  );
+    return (
+      <motion.label
+        htmlFor={`step-${index}`}
+        className={labelClasses}
+        title={steps[index].label}
+        initial={{ opacity: 0.7, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        <span className="truncate">{steps[index].label}</span>
+        <AnimatePresence>
+          {(hasStepData || isBeforeCurrent) && (
+            <motion.span
+              className="ml-1 flex h-5 w-5 items-center justify-center rounded-full flex-shrink-0 bg-green-600 text-white"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              aria-hidden="true"
+            >
+              <BadgeCheck size={12} strokeWidth={2} />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.label>
+    );
+  };
 
-  const getConnectorClass = useCallback(
-    (index: number) => {
-      const hasStepData = hasData[steps[index].path] || isPublished;
-      const hasNextStepData = hasData[steps[index + 1].path] || isPublished;
-      const isBeforeCurrent = index < currentStep;
+  const getConnectorClass = (index: number) => {
+    const hasStepData = hasData[steps[index].path];
+    const hasNextStepData = hasData[steps[index + 1].path];
+    const isBeforeCurrent = index < currentStep;
 
-      return clsx(
-        "absolute top-5 z-0 h-[2px] w-full transition-colors duration-300 ease-in-out",
-        {
-          "bg-green-600": hasStepData || hasNextStepData || isBeforeCurrent,
-          "bg-gray-300": !hasStepData && !hasNextStepData && !isBeforeCurrent,
-        }
-      );
-    },
-    [currentStep, hasData, isPublished]
-  );
+    return clsx(
+      "absolute top-5 z-0 h-[2px] w-full transition-colors duration-300 ease-in-out",
+      {
+        "bg-green-600": hasStepData || hasNextStepData || isBeforeCurrent,
+        "bg-gray-300": !hasStepData && !hasNextStepData && !isBeforeCurrent,
+      }
+    );
+  };
 
   if (!isMounted) {
     return (
@@ -388,17 +314,7 @@ const StepperComponents: React.FC = () => {
 
   return (
     <nav aria-label="Stepper navigation">
-      {isTransitioning && (
-        <motion.div
-          className="fixed inset-0 bg-gray-100/50 flex items-center justify-center z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
-        </motion.div>
-      )}
+      {/* Mobile View */}
       <div className="flex w-full flex-col items-center px-2 py-6 sm:hidden">
         <motion.p
           key={currentStep}
@@ -448,19 +364,15 @@ const StepperComponents: React.FC = () => {
         </div>
 
         <motion.div className="mt-1 flex gap-2">
-          {steps.map((_, _index) => (
+          {steps.map((_, index) => (
             <motion.div
-              key={_index}
+              key={index}
               role="presentation"
               className={clsx(
                 "h-2.5 w-2.5 rounded-full transition-colors duration-300",
                 {
-                  "bg-green-600":
-                    hasData[steps[_index].path] || _index < currentStep || isPublished,
-                  "bg-gray-300":
-                    !hasData[steps[_index].path] &&
-                    _index >= currentStep &&
-                    !isPublished,
+                  "bg-green-600": hasData[steps[index].path] || index < currentStep,
+                  "bg-gray-300": !hasData[steps[index].path] && index >= currentStep,
                 }
               )}
               initial={{ scale: 0.8, opacity: 0.7 }}
@@ -471,6 +383,7 @@ const StepperComponents: React.FC = () => {
         </motion.div>
       </div>
 
+      {/* Desktop View */}
       <div className="hidden w-full flex-col items-center px-4 py-6 sm:flex">
         <motion.p
           className="mb-4 text-sm font-semibold text-gray-700"
@@ -512,6 +425,4 @@ const StepperComponents: React.FC = () => {
       </div>
     </nav>
   );
-};
-
-export default memo(StepperComponents);
+}
