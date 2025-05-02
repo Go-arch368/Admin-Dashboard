@@ -1,6 +1,7 @@
+
 "use client";
 import clsx from "clsx";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Home,
@@ -112,23 +113,32 @@ const steps: Step[] = [
   },
 ];
 
-export default function StepperComponents() {
+const StepperComponents: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const [hasData, setHasData] = useState<Record<string, boolean>>({});
   const [isPublished, setIsPublished] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const currentStep =
     steps.findIndex((step) => step.path === pathname) === -1
       ? 0
       : steps.findIndex((step) => step.path === pathname);
 
+  // Preload all step pages with error handling
   useEffect(() => {
+    steps.forEach((step) => {
+      try {
+        router.prefetch(step.path);
+      } catch (error) {
+        console.warn(`Failed to prefetch ${step.path}:`, error);
+      }
+    });
     setIsMounted(true);
-  }, []);
+  }, [router]);
 
-  const checkData = React.useCallback(() => {
+  const checkData = useCallback(() => {
     if (!isMounted) return;
 
     const apiResponse = localStorage.getItem("apiResponse");
@@ -190,24 +200,38 @@ export default function StepperComponents() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [isMounted, checkData]);
 
-  const getVisibleSteps = () => {
+  const getVisibleSteps = useCallback(() => {
     if (currentStep <= 1) return steps.slice(0, 3);
     if (currentStep >= steps.length - 1) return steps.slice(-3);
     return steps.slice(currentStep - 1, currentStep + 2);
-  };
+  }, [currentStep]);
 
-  const handleStepNavigation = (index: number) => {
-    router.push(steps[index].path);
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  };
+  const handleStepNavigation = useCallback(
+    (index: number) => {
+      if (isTransitioning || steps[index].path === pathname) return;
 
-  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
-    if (event.key === "Enter" || event.key === " ") {
-      handleStepNavigation(index);
-    }
-  };
+      setIsTransitioning(true);
+      router.push(steps[index].path, { scroll: false });
+
+      // Reset transition state after animation duration
+      setTimeout(() => {
+        setIsTransitioning(false);
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+      }, 400); // Increased to 400ms to ensure animation completion
+    },
+    [isTransitioning, pathname, router]
+  );
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent, index: number) => {
+      if (event.key === "Enter" || event.key === " ") {
+        handleStepNavigation(index);
+      }
+    },
+    [handleStepNavigation]
+  );
 
   const stepVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 10 },
@@ -225,112 +249,122 @@ export default function StepperComponents() {
     exit: { opacity: 0, scale: 0.8, y: -10 },
   };
 
-  const renderStepCircle = (index: number) => {
-    const Icon = steps[index].icon;
-    const isCurrent = index === currentStep;
-    const hasStepData = hasData[steps[index].path] || isPublished;
-    const isBeforeCurrent = index < currentStep;
+  const renderStepCircle = useCallback(
+    (index: number) => {
+      const Icon = steps[index].icon;
+      const isCurrent = index === currentStep;
+      const hasStepData = hasData[steps[index].path] || isPublished;
+      const isBeforeCurrent = index < currentStep;
 
-    const circleClasses = clsx(
-      "z-10 flex items-center justify-center rounded-full border-2 text-sm font-semibold bg-white cursor-pointer relative outline-none",
-      {
-        "h-10 w-10 border-green-600 text-green-600":
-          (hasStepData || isBeforeCurrent) || isCurrent,
-        "h-8 w-8": !isCurrent,
-        "border-gray-300 text-gray-400":
-          !hasStepData && !isBeforeCurrent && !isCurrent,
-      }
-    );
+      const circleClasses = clsx(
+        "z-10 flex items-center justify-center rounded-full border-2 text-sm font-semibold bg-white cursor-pointer relative outline-none",
+        {
+          "h-10 w-10 border-green-600 text-green-600":
+            (hasStepData || isBeforeCurrent) || isCurrent,
+          "h-8 w-8": !isCurrent,
+          "border-gray-300 text-gray-400":
+            !hasStepData && !isBeforeCurrent && !isCurrent,
+          "opacity-50 cursor-not-allowed": isTransitioning,
+        }
+      );
 
-    return (
-      <motion.div
-        id={`step-${index}`}
-        className={circleClasses}
-        role="button"
-        tabIndex={0}
-        onClick={() => handleStepNavigation(index)}
-        onKeyDown={(e) => handleKeyDown(e, index)}
-        aria-label={`Go to ${steps[index].label} step`}
-        whileTap={{ scale: 0.9 }}
-        layout
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      >
-        <AnimatePresence>
-          {isCurrent && (
-            <motion.div
-              className="absolute -inset-2 rounded-full border-2 border-orange-600 pointer-events-none"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15, duration: 0.2 }}
-            />
-          )}
-        </AnimatePresence>
+      return (
         <motion.div
+          id={`step-${index}`}
+          className={circleClasses}
+          role="button"
+          tabIndex={0}
+          onClick={() => handleStepNavigation(index)}
+          onKeyDown={(e) => handleKeyDown(e, index)}
+          aria-label={`Go to ${steps[index].label} step`}
+          whileTap={{ scale: isTransitioning ? 1 : 0.9 }}
           layout
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          <Icon width={isCurrent ? 22 : 20} height={isCurrent ? 22 : 20} aria-hidden="true" />
+          <AnimatePresence>
+            {isCurrent && (
+              <motion.div
+                className="absolute -inset-2 rounded-full border-2 border-orange-600 pointer-events-none"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15, duration: 0.2 }}
+              />
+            )}
+          </AnimatePresence>
+          <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
+            <Icon width={isCurrent ? 22 : 20} height={isCurrent ? 22 : 20} aria-hidden="true" />
+          </motion.div>
         </motion.div>
-      </motion.div>
-    );
-  };
+      );
+    },
+    [currentStep, hasData, isPublished, isTransitioning, handleStepNavigation, handleKeyDown]
+  );
 
-  const renderStepLabel = (index: number) => {
-    const isCurrent = index === currentStep;
-    const hasStepData = hasData[steps[index].path] || isPublished;
-    const isBeforeCurrent = index < currentStep;
+  const renderStepLabel = useCallback(
+    (index: number) => {
+      const isCurrent = index === currentStep;
+      const hasStepData = hasData[steps[index].path] || isPublished;
+      const isBeforeCurrent = index < currentStep;
 
-    const labelClasses = clsx(
-      "mt-3 px-1 text-xs text-center max-w-[100px] flex items-center gap-1 font-semibold transition-colors duration-300",
-      {
-        "text-green-600 text-sm": isCurrent,
-        "text-green-600": (hasStepData || isBeforeCurrent) && !isCurrent,
-        "text-gray-600": !hasStepData && !isBeforeCurrent && !isCurrent,
-      }
-    );
+      const labelClasses = clsx(
+        "mt-3 px-1 text-xs text-center max-w-[100px] flex items-center gap-1 font-semibold transition-colors duration-300",
+        {
+          "text-green-600 text-sm": isCurrent,
+          "text-green-600": (hasStepData || isBeforeCurrent) && !isCurrent,
+          "text-gray-600": !hasStepData && !isBeforeCurrent && !isCurrent,
+        }
+      );
 
-    return (
-      <motion.label
-        htmlFor={`step-${index}`}
-        className={labelClasses}
-        title={steps[index].label}
-        initial={{ opacity: 0.7, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      >
-        <span className="truncate">{steps[index].label}</span>
-        <AnimatePresence>
-          {(hasStepData || isBeforeCurrent) && (
-            <motion.span
-              className="ml-1 flex h-5 w-5 items-center justify-center rounded-full flex-shrink-0 bg-green-600 text-white"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              aria-hidden="true"
-            >
-              <BadgeCheck size={12} strokeWidth={2} />
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.label>
-    );
-  };
+      return (
+        <motion.label
+          htmlFor={`step-${index}`}
+          className={labelClasses}
+          title={steps[index].label}
+          initial={{ opacity: 0.7, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <span className="truncate">{steps[index].label}</span>
+          <AnimatePresence>
+            {(hasStepData || isBeforeCurrent) && (
+              <motion.span
+                className="ml-1 flex h-5 w-5 items-center justify-center rounded-full flex-shrink-0 bg-green-600 text-white"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                aria-hidden="true"
+              >
+                <BadgeCheck size={12} strokeWidth={2} />
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.label>
+      );
+    },
+    [currentStep, hasData, isPublished]
+  );
 
-  const getConnectorClass = (index: number) => {
-    const hasStepData = hasData[steps[index].path] || isPublished;
-    const hasNextStepData = hasData[steps[index + 1].path] || isPublished;
-    const isBeforeCurrent = index < currentStep;
+  const getConnectorClass = useCallback(
+    (index: number) => {
+      const hasStepData = hasData[steps[index].path] || isPublished;
+      const hasNextStepData = hasData[steps[index + 1].path] || isPublished;
+      const isBeforeCurrent = index < currentStep;
 
-    return clsx(
-      "absolute top-5 z-0 h-[2px] w-full transition-colors duration-300 ease-in-out",
-      {
-        "bg-green-600": hasStepData || hasNextStepData || isBeforeCurrent,
-        "bg-gray-300": !hasStepData && !hasNextStepData && !isBeforeCurrent,
-      }
-    );
-  };
+      return clsx(
+        "absolute top-5 z-0 h-[2px] w-full transition-colors duration-300 ease-in-out",
+        {
+          "bg-green-600": hasStepData || hasNextStepData || isBeforeCurrent,
+          "bg-gray-300": !hasStepData && !hasNextStepData && !isBeforeCurrent,
+        }
+      );
+    },
+    [currentStep, hasData, isPublished]
+  );
 
   if (!isMounted) {
     return (
@@ -354,6 +388,17 @@ export default function StepperComponents() {
 
   return (
     <nav aria-label="Stepper navigation">
+      {isTransitioning && (
+        <motion.div
+          className="fixed inset-0 bg-gray-100/50 flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </motion.div>
+      )}
       <div className="flex w-full flex-col items-center px-2 py-6 sm:hidden">
         <motion.p
           key={currentStep}
@@ -467,4 +512,6 @@ export default function StepperComponents() {
       </div>
     </nav>
   );
-}
+};
+
+export default memo(StepperComponents);
