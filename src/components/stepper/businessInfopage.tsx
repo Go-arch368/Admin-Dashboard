@@ -186,7 +186,7 @@ export default function BusinessInformation() {
           )}
 
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-500 hover:bg-blue-600"
             color="primary"
             onClick={handleNext}
             disabled={!formData.businessName.trim()}
