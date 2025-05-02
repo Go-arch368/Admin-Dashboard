@@ -1,202 +1,225 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
-import { Pencil } from "lucide-react";
-
-interface Service {
-  name: string;
-  price: string;
-}
-
-interface Business {
-  services: Service[];
-}
-
-interface FormData {
-  subcategories?: { businesses?: Business[] }[];
-}
-
-const FORM_DATA_KEY = "servicesFormData";
-const PUBLISH_FORM_DATA_KEY = "publishFormData";
-const EDIT_MODE_KEY = "isEditModeActive";
-const HAS_CHANGES_KEY = "hasChanges";
+import { Pencil, Trash2 } from "lucide-react";
+import businessData from "@/datas/businessData.json";
 
 const Services = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState<FormData | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [services, setServices] = useState<{ name: string; price: string }[]>([
+    { name: "", price: "" },
+  ]);
+  const [initialServices, setInitialServices] = useState<{ name: string; price: string }[]>([]);
 
   useEffect(() => {
-    if (initialized || typeof window === "undefined") return;
+    const apiResponse = localStorage.getItem("apiResponse");
+    const servicesFormData = localStorage.getItem("servicesFormData");
 
-    const publishFormData = localStorage.getItem(PUBLISH_FORM_DATA_KEY);
-    const isPublishedLocal = publishFormData ? JSON.parse(publishFormData).published : false;
-    const editMode = localStorage.getItem(EDIT_MODE_KEY) === "true";
-    setIsEditMode(editMode || !isPublishedLocal);
-    setIsPublished(isPublishedLocal);
+    let existingData = null;
 
-    const savedFormData = localStorage.getItem(FORM_DATA_KEY);
-    if (savedFormData && savedFormData !== "null") {
+    if (servicesFormData && servicesFormData !== "null") {
       try {
-        setFormData(JSON.parse(savedFormData));
-      } catch (err) {
-        console.error("Error parsing savedFormData:", err);
+        const parsedFormData = JSON.parse(servicesFormData);
+        const draftServices = parsedFormData.subcategories?.[0]?.businesses?.[0]?.services || [];
+        if (draftServices.length > 0) {
+          existingData = draftServices;
+        }
+      } catch (e) {
+        console.error("Error parsing draft data", e);
       }
+    }
+
+    if (!existingData && apiResponse) {
+      try {
+        const parsedApiResponse = JSON.parse(apiResponse);
+        const publishedServices = parsedApiResponse?.services || [];
+        if (publishedServices.length > 0) {
+          existingData = publishedServices;
+        }
+      } catch (e) {
+        console.error("Error parsing api response", e);
+      }
+    }
+
+    if (existingData) {
+      setServices(existingData);
+      setInitialServices(existingData);
+      setHasExistingData(true);
+      setIsEditing(false);
     } else {
-      setFormData({
+      setServices(businessData.subcategories[0].businesses[0].services);
+      setIsEditing(true);
+      setHasExistingData(false);
+    }
+  }, []);
+
+  const handleServiceChange = (index: number, field: "name" | "price", value: string) => {
+    const updatedServices = [...services];
+    updatedServices[index][field] = value;
+    setServices(updatedServices);
+    localStorage.setItem("hasChanges", "true");
+  };
+
+  const addService = () => {
+    setServices([...services, { name: "", price: "" }]);
+    localStorage.setItem("hasChanges", "true");
+  };
+
+  const removeService = (index: number) => {
+    if (services.length <= 1) return;
+    const updatedServices = services.filter((_, i) => i !== index);
+    setServices(updatedServices);
+    localStorage.setItem("hasChanges", "true");
+  };
+
+  const handleNext = () => {
+    const dataToSave = {
+      subcategories: [
+        {
+          businesses: [
+            {
+              services,
+            },
+          ],
+        },
+      ],
+    };
+    localStorage.setItem("servicesFormData", JSON.stringify(dataToSave));
+    localStorage.setItem("hasChanges", "true");
+    router.push("/review&publish");
+  };
+
+  const toggleEdit = () => {
+    if (isEditing) {
+      setServices(initialServices);
+      const dataToSave = {
         subcategories: [
           {
             businesses: [
               {
-                services: [],
+                services: initialServices,
               },
             ],
           },
         ],
-      });
+      };
+      localStorage.setItem("servicesFormData", JSON.stringify(dataToSave));
+    } else {
+      localStorage.setItem("isEditModeActive", "true");
+      localStorage.setItem("hasChanges", "true");
+      console.log("Edit mode enabled via Services pencil");
     }
-    setInitialized(true);
-  }, [initialized]);
-
-  const addService = () => {
-    if (!formData || !isEditMode) return;
-    const newData = JSON.parse(JSON.stringify(formData));
-    newData.subcategories[0].businesses[0].services.push({ name: "", price: "" });
-    setFormData(newData);
-    localStorage.setItem(FORM_DATA_KEY, JSON.stringify(newData));
-    localStorage.setItem(HAS_CHANGES_KEY, "true");
+    setIsEditing(!isEditing);
   };
 
-  const removeService = (index: number) => {
-    if (!formData || !isEditMode) return;
-    const newData = JSON.parse(JSON.stringify(formData));
-    newData.subcategories[0].businesses[0].services.splice(index, 1);
-    setFormData(newData);
-    localStorage.setItem(FORM_DATA_KEY, JSON.stringify(newData));
-    localStorage.setItem(HAS_CHANGES_KEY, "true");
-  };
-
-  const updateService = (index: number, field: keyof Service, value: string) => {
-    if (!formData || !isEditMode) return;
-    const newData = JSON.parse(JSON.stringify(formData));
-    newData.subcategories[0].businesses[0].services[index][field] = value;
-    setFormData(newData);
-    localStorage.setItem(FORM_DATA_KEY, JSON.stringify(newData));
-    localStorage.setItem(HAS_CHANGES_KEY, "true");
-  };
-
-  const handleEdit = () => {
-    setIsEditMode(true);
-    localStorage.setItem(EDIT_MODE_KEY, "true");
-    localStorage.setItem(HAS_CHANGES_KEY, "true");
-    localStorage.setItem(PUBLISH_FORM_DATA_KEY, JSON.stringify({ published: false }));
-  };
-
-  if (!formData) return <div>Loading...</div>;
-
-  const currentBusiness = formData.subcategories?.[0]?.businesses?.[0] || { services: [] };
+  const isReadOnly = hasExistingData && !isEditing;
 
   return (
-    <div className="max-w-4xl mx-auto p-5">
-      <form className="bg-gray-50 rounded-lg shadow-sm p-6 relative">
-        {!isEditMode && isPublished && (
-          <button
-            type="button"
-            onClick={handleEdit}
-            className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 focus:ring-2 focus:ring-gray-500 p-2 rounded-full"
-            aria-label="Edit services"
-          >
-            <Pencil className="h-5 w-5" />
-          </button>
-        )}
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Services</h2>
-
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Business Services</h3>
-          <div className="mb-4">
-            {currentBusiness.services.map((service: Service, index: number) => (
-              <div key={index} className="mb-4 p-3 border border-gray-200 rounded-md bg-white">
-                <div className="flex flex-wrap gap-4">
-                  <div className="flex-1 min-w-[200px]">
-                    <label htmlFor={`service-name-${index}`} className="block mb-2 font-medium text-gray-700">
-                      Service Name:
-                    </label>
-                    <input
-                      type="text"
-                      id={`service-name-${index}`}
-                      placeholder="Enter service name"
-                      value={service.name}
-                      onChange={(e) => updateService(index, "name", e.target.value)}
-                      className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                        isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
-                      }`}
-                      readOnly={!isEditMode}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-[200px]">
-                    <label htmlFor={`service-price-${index}`} className="block mb-2 font-medium text-gray-700">
-                      Price:
-                    </label>
-                    <input
-                      type="text"
-                      id={`service-price-${index}`}
-                      placeholder="Enter price"
-                      value={service.price}
-                      onChange={(e) => updateService(index, "price", e.target.value)}
-                      className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                        isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
-                      }`}
-                      readOnly={!isEditMode}
-                    />
-                  </div>
-                </div>
-                {isEditMode && currentBusiness.services.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeService(index)}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500"
-                    aria-label={`Remove service ${index + 1}`}
-                  >
-                    Remove Service
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          {isEditMode && (
+    <main className="max-w-4xl mx-auto p-5">
+      <div className="bg-gray-50 rounded-lg shadow-sm p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Services</h2>
+          {isReadOnly && (
             <button
-              type="button"
-              onClick={addService}
-              className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 focus:ring-2 focus:ring-green-600"
-              aria-label="Add new service"
+              onClick={toggleEdit}
+              className="text-blue-600 hover:text-blue-800"
+              aria-label="Edit Services"
             >
-              + Add Service
+              <Pencil className="w-5 h-5" />
             </button>
           )}
         </div>
 
-        <div className="flex justify-between gap-3">
+        {isReadOnly ? (
+          <div className="mb-4 p-3 bg-gray-100 text-gray-800 rounded-md">
+            Viewing saved services.
+          </div>
+        ) : (
+          <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-md">
+            {hasExistingData ? "Editing services." : "Please enter your services."}
+          </div>
+        )}
+
+        <div className="mb-6 pb-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Details</h3>
+          {services.map((service, index) => (
+            <div key={index} className="flex flex-wrap gap-4 mb-4 items-center">
+              <div className="flex-1 min-w-[200px]">
+                <label className="block mb-2 font-medium text-gray-700">Service Name:</label>
+                <input
+                  type="text"
+                  value={service.name}
+                  onChange={(e) => handleServiceChange(index, "name", e.target.value)}
+                  readOnly={isReadOnly}
+                  className={`w-full p-2 ${
+                    isReadOnly ? "bg-gray-100" : "border border-gray-300"
+                  } rounded-md focus:ring-2 focus:ring-gray-500`}
+                  placeholder="Enter service name"
+                />
+              </div>
+              <div className="flex-1 min-w-[150px]">
+                <label className="block mb-2 font-medium text-gray-700">Price:</label>
+                <input
+                  type="text"
+                  value={service.price}
+                  onChange={(e) => handleServiceChange(index, "price", e.target.value)}
+                  readOnly={isReadOnly}
+                  className={`w-full p-2 ${
+                    isReadOnly ? "bg-gray-100" : "border border-gray-300"
+                  } rounded-md focus:ring-2 focus:ring-gray-500`}
+                  placeholder="Enter price"
+                />
+              </div>
+              {!isReadOnly && services.length > 1 && (
+                <button
+                  onClick={() => removeService(index)}
+                  className="text-red-600 hover:text-red-800 mt-6"
+                  aria-label={`Remove service ${index + 1}`}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          ))}
+          {!isReadOnly && (
+            <Button
+              className="mt-4 bg-green-600 text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+              onClick={addService}
+            >
+              Add Service
+            </Button>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
             className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-gray-500"
             onClick={() => router.push("/contact&timings")}
-            type="button"
           >
             Back
           </Button>
+          {isEditing && hasExistingData && (
+            <Button
+              className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-gray-500"
+              onClick={toggleEdit}
+            >
+              Cancel
+            </Button>
+          )}
           <Button
-            className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
-            onClick={() => router.push("/review&publish")}
-            type="button"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700"
+            color="primary"
+            onClick={handleNext}
+            disabled={services.some((s) => !s.name.trim())}
           >
-            Next
+            {isReadOnly ? "Next" : "Save & Next"}
           </Button>
         </div>
-      </form>
-    </div>
+      </div>
+    </main>
   );
 };
 
