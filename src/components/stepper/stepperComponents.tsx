@@ -1,22 +1,15 @@
+
 "use client";
 import clsx from "clsx";
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Home,
-  Briefcase,
-  MapPin,
-  Phone,
-  Wrench,
-  CheckCircle,
-  BadgeCheck,
-} from "lucide-react";
+import { Home, Briefcase, MapPin, Phone, Wrench, CheckCircle, BadgeCheck } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 interface Step {
   label: string;
   path: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
   storageKey: string;
   apiResponseKey: string | string[];
 }
@@ -71,7 +64,6 @@ export default function Stepper() {
   const pathname = usePathname();
   const router = useRouter();
   const [hasData, setHasData] = useState<Record<string, boolean>>({});
-  const [isPublished, setIsPublished] = useState(false);
 
   const currentStep =
     steps.findIndex((step) => step.path === pathname) === -1
@@ -85,18 +77,8 @@ export default function Stepper() {
   const checkData = React.useCallback(() => {
     if (!isMounted) return;
 
-    // Check if the business is published using publishFormData
-    const publishFormDataRaw = localStorage.getItem("publishFormData");
-    let publishFormData = { published: false };
-    try {
-      publishFormData = publishFormDataRaw ? JSON.parse(publishFormDataRaw) : { published: false };
-    } catch (error) {
-      console.error("Error parsing publishFormData:", error);
-    }
-    setIsPublished(publishFormData.published);
-
     const apiResponse = localStorage.getItem("apiResponse");
-    let apiData: Record<string, any> = {};
+    let apiData: Record<string, unknown> = {};
 
     try {
       if (apiResponse && apiResponse !== '""') {
@@ -122,8 +104,9 @@ export default function Stepper() {
           );
         } else {
           apiDataExists =
-            apiData[step.apiResponseKey] &&
-            Object.keys(apiData[step.apiResponseKey]).length > 0;
+            typeof apiData[step.apiResponseKey] === "object" &&
+            apiData[step.apiResponseKey] !== null &&
+            Object.keys(apiData[step.apiResponseKey] as Record<string, unknown>).length > 0;
         }
       }
 
@@ -164,13 +147,12 @@ export default function Stepper() {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" || event.key === " ") {
-      handleStepNavigation(index);
+      handleStepNavigation(currentStep);
     }
   };
 
-  // Animation variants for steps
   const stepVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 10 },
     visible: {
@@ -209,7 +191,7 @@ export default function Stepper() {
         role="button"
         tabIndex={0}
         onClick={() => handleStepNavigation(index)}
-        onKeyDown={(e) => handleKeyDown(e, index)}
+        onKeyDown={handleKeyDown}
         aria-label={`Go to ${steps[index].label} step`}
         whileTap={{ scale: 0.9 }}
         layout
@@ -230,7 +212,7 @@ export default function Stepper() {
           layout
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          <Icon size={isCurrent ? 22 : 20} aria-hidden="true" />
+          <Icon size={isCurrent ? 22 : 20} aria-hidden={true} />
         </motion.div>
       </motion.div>
     );
@@ -314,7 +296,6 @@ export default function Stepper() {
 
   return (
     <nav aria-label="Stepper navigation">
-      {/* Mobile View */}
       <div className="flex w-full flex-col items-center px-2 py-6 sm:hidden">
         <motion.p
           key={currentStep}
@@ -383,7 +364,6 @@ export default function Stepper() {
         </motion.div>
       </div>
 
-      {/* Desktop View */}
       <div className="hidden w-full flex-col items-center px-4 py-6 sm:flex">
         <motion.p
           className="mb-4 text-sm font-semibold text-gray-700"

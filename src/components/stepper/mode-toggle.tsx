@@ -1,66 +1,48 @@
 
-'use client';
-import { useState, useEffect } from 'react';
-import { Button } from '@heroui/button';
-import { Plus } from 'lucide-react';
+"use client";
+import { Moon, Sun } from "lucide-react";
+import { useState, useEffect } from "react";
 
-export function ModeToggle({}: object) {
-  const [mode, setMode] = useState<'create' | 'edit'>('create');
-  const [isCreating, setIsCreating] = useState(false);
+export default function ModeToggle() {
+  const [mode, setMode] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const checkForData = () => {
-      try {
-        const apiResponse = localStorage.getItem('apiResponse');
-        if (!apiResponse) return false;
-
-        const parsed = JSON.parse(apiResponse);
-
-        return parsed && typeof parsed === 'object' &&
-               Object.keys(parsed).length > 0 &&
-               Object.values(parsed).some(val => val !== undefined && val !== null);
-      } catch (_) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return false;
-      }
-    };
-
-    const dataExists = checkForData();
-
-    const forceCreateMode = localStorage.getItem('forceCreateMode');
-    setMode(forceCreateMode === 'true' || !dataExists ? 'create' : 'edit');
-
-    if (forceCreateMode === 'true') {
-      localStorage.removeItem('forceCreateMode');
+    const savedMode = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedMode) {
+      setMode(savedMode);
+      document.documentElement.classList.toggle("dark", savedMode === "dark");
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const initialMode = prefersDark ? "dark" : "light";
+      setMode(initialMode);
+      localStorage.setItem("theme", initialMode);
+      document.documentElement.classList.toggle("dark", initialMode === "dark");
     }
-  }, []);
+  }, [mode]);
 
-  const handleCreateClick = () => {
-    setIsCreating(true);
-    localStorage.clear();
-    localStorage.removeItem('apiResponse');
-    localStorage.setItem('forceCreateMode', 'true');
-    setMode('create');
+  const toggleMode = () => {
+    const newMode = mode === "light" ? "dark" : "light";
+    setMode(newMode);
+    localStorage.setItem("theme", newMode);
+    document.documentElement.classList.toggle("dark", newMode === "dark");
+  };
 
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+  const handleKeyDown = () => {
+    toggleMode();
   };
 
   return (
-    <div className="flex gap-2">
-      <Button
-        onClick={handleCreateClick}
-        isDisabled={isCreating}
-        color={mode === 'create' ? 'primary' : 'default'}
-        startContent={<Plus className="h-4 w-4" />}
-        variant={mode === 'create' ? 'solid' : 'bordered'}
-        size="sm"
-        radius="full"
-        className="mt-3 ml-5"
-      >
-        {isCreating ? 'Creating...' : 'Create'}
-      </Button>
-    </div>
+    <button
+      onClick={toggleMode}
+      onKeyDown={handleKeyDown}
+      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:ring-2 focus:ring-gray-500"
+      aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
+    >
+      {mode === "light" ? (
+        <Moon className="h-5 w-5 text-gray-800" />
+      ) : (
+        <Sun className="h-5 w-5 text-yellow-500" />
+      )}
+    </button>
   );
 }
