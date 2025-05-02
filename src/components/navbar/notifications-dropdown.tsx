@@ -7,9 +7,10 @@ import {
   DropdownItem,
   DropdownSection,
 } from "@nextui-org/react";
-import React from "react";
-import { NotificationIcon } from "../icons/navbar/notification-icon";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { NotificationIcon } from "../icons/navbar/notification-icon";
 
 export const NotificationsDropdown = () => {
   const { theme } = useTheme();

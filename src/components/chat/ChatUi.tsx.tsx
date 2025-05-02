@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Contact from "../../types/Contact";
+
 import ContactData from "../../data/Contact.json";
-import ContactList from "./ContactList";
+import Contact from "../../types/Contact";
+
 import ChatHeader from "./ChatHeader";
-import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
+import ChatMessages from "./ChatMessages";
+import ContactList from "./ContactList";
 
 const sampleContacts: Contact[] = ContactData.map((contact) => ({
   ...contact,

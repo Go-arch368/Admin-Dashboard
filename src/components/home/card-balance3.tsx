@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
 import { Card, CardBody } from "@nextui-org/react";
+import React from "react";
+
 import { Community } from "../icons/community";
 export const CardBalance3 = () => (
   <Card className="h-full w-full rounded-xl bg-green-600 shadow-lg">

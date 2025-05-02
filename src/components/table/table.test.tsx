@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import TableWrapper from "@/components/table/table";
+
 import { columns, users } from "@/components/table/data";
+import TableWrapper from "@/components/table/table";
 
 // Mock data setup for users and columns if needed
 jest.mock("@/components/data", () => ({

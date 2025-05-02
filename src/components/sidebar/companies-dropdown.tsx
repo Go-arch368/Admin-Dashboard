@@ -6,13 +6,14 @@ import {
   DropdownItem,
   DropdownSection,
 } from "@nextui-org/react";
+import { useTheme } from "next-themes";
 import React, { useState } from "react";
+
 import { AcmeIcon } from "../icons/acme-icon";
 import { AcmeLogo } from "../icons/acme-logo";
 import { BottomIcon } from "../icons/sidebar/bottom-icon";
 import { Box } from "../styles/box";
 import { Flex } from "../styles/flex";
-import { useTheme } from "next-themes";
 
 interface Company {
   name: string;

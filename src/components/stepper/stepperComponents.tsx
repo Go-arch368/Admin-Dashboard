@@ -13,10 +13,56 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface CTA {
+  call: string;
+  bookUrl: string;
+  getDirections: string;
+}
+
+interface Service {
+  name: string;
+  price: string;
+}
+
+interface Location {
+  address: string;
+  city: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+interface Contact {
+  phone?: string;
+  email?: string;
+  website?: string;
+}
+
+interface Timings {
+  [key: string]: string;
+}
+
+interface ApiResponse {
+  welcome?: { completed?: boolean; category?: string; subcategory?: string };
+  gallery?: string[];
+  faqs?: FAQ[];
+  cta?: CTA;
+  business?: { businessName?: string; description?: string };
+  location?: Location;
+  contact?: Contact;
+  services?: Service[];
+  timings?: Timings;
+}
+
 interface Step {
   label: string;
   path: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   storageKey: string;
   apiResponseKey: string | string[];
 }
@@ -86,7 +132,7 @@ export default function StepperComponents() {
     if (!isMounted) return;
 
     const apiResponse = localStorage.getItem("apiResponse");
-    let apiData: Record<string, any> = {};
+    let apiData: ApiResponse = {};
     let hasApiResponse = false;
 
     try {
@@ -111,12 +157,12 @@ export default function StepperComponents() {
           apiDataExists = true;
         } else if (Array.isArray(step.apiResponseKey)) {
           apiDataExists = step.apiResponseKey.every(
-            (key) => apiData[key] && Object.keys(apiData[key]).length > 0
+            (key) => key in apiData && apiData[key as keyof ApiResponse] && Object.keys(apiData[key as keyof ApiResponse]!).length > 0
           );
         } else {
           apiDataExists =
-            apiData[step.apiResponseKey] &&
-            Object.keys(apiData[step.apiResponseKey]).length > 0;
+            !!apiData[step.apiResponseKey as keyof ApiResponse] &&
+            Object.keys(apiData[step.apiResponseKey as keyof ApiResponse] || {}).length > 0;
         }
       }
 
@@ -163,7 +209,6 @@ export default function StepperComponents() {
     }
   };
 
-  // Animation variants for steps
   const stepVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 10 },
     visible: {
@@ -225,7 +270,7 @@ export default function StepperComponents() {
           layout
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          <Icon size={isCurrent ? 22 : 20} aria-hidden="true" />
+          <Icon width={isCurrent ? 22 : 20} height={isCurrent ? 22 : 20} aria-hidden="true" />
         </motion.div>
       </motion.div>
     );
@@ -309,7 +354,6 @@ export default function StepperComponents() {
 
   return (
     <nav aria-label="Stepper navigation">
-      {/* Mobile View */}
       <div className="flex w-full flex-col items-center px-2 py-6 sm:hidden">
         <motion.p
           key={currentStep}
@@ -359,18 +403,18 @@ export default function StepperComponents() {
         </div>
 
         <motion.div className="mt-1 flex gap-2">
-          {steps.map((_, index) => (
+          {steps.map((_, _index) => (
             <motion.div
-              key={index}
+              key={_index}
               role="presentation"
               className={clsx(
                 "h-2.5 w-2.5 rounded-full transition-colors duration-300",
                 {
                   "bg-green-600":
-                    hasData[steps[index].path] || index < currentStep || isPublished,
+                    hasData[steps[_index].path] || _index < currentStep || isPublished,
                   "bg-gray-300":
-                    !hasData[steps[index].path] &&
-                    index >= currentStep &&
+                    !hasData[steps[_index].path] &&
+                    _index >= currentStep &&
                     !isPublished,
                 }
               )}
@@ -382,7 +426,6 @@ export default function StepperComponents() {
         </motion.div>
       </div>
 
-      {/* Desktop View */}
       <div className="hidden w-full flex-col items-center px-4 py-6 sm:flex">
         <motion.p
           className="mb-4 text-sm font-semibold text-gray-700"

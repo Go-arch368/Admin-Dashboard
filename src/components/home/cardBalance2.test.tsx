@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { CardBalance2 } from "@/components/home/card-balance2"; // Adjust the import path as necessary
 import { ThemeProvider } from "next-themes"; // Ensure ThemeProvider is used
+
+import { CardBalance2 } from "@/components/home/card-balance2"; // Adjust the import path as necessary
 import "@testing-library/jest-dom";
 
 describe("CardBalance2", () => {

@@ -1,7 +1,8 @@
 "use client";
-import React from "react";
-import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
+import React from "react";
+
 import { Box } from "../styles/box";
 import { Flex } from "../styles/flex";
 

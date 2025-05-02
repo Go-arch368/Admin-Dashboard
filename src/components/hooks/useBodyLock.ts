@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+
 import { useIsomorphicLayoutEffect } from "./useIsomorphicLayoutEffect";
 
 type ReturnType = [boolean, (locked: boolean) => void];

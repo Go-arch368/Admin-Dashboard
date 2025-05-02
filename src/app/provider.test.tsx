@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+
 import { Providers } from "@/app/providers";
 
 // Mocking the actual NextUIProvider and NextThemesProvider to test their presence

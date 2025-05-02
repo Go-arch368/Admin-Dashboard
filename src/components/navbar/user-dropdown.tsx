@@ -1,5 +1,6 @@
 "use client";
 
+import { useClerk } from "@clerk/nextjs"; // 👈 Clerk hook
 import {
   Dropdown,
   DropdownItem,
@@ -8,10 +9,9 @@ import {
   User,
 } from "@nextui-org/react";
 import { User2 } from "lucide-react";
-import React, { useState } from "react";
-import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
-import { useClerk } from "@clerk/nextjs"; // 👈 Clerk hook
+import { useTheme } from "next-themes";
+import React, { useState } from "react";
 
 const Divider = () => (
   <hr className="my-2 border-t border-gray-200 dark:border-gray-700" />

@@ -1,8 +1,9 @@
 import { Link } from "@nextui-org/react";
+import clsx from "clsx";
 import NextLink from "next/link";
 import React from "react";
+
 import { useSidebarContext } from "../layout/layout-context";
-import clsx from "clsx";
 
 interface SidebarItemProps {
   title: string;

@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import {
     Modal,
     ModalBody,
@@ -9,6 +8,7 @@ import {
     useDisclosure,
     Input,
 } from "@heroui/react";
+import React from "react";
 import { FiSearch, FiMapPin, FiChevronDown, FiX } from "react-icons/fi";
 
 export default function LocationModal() {

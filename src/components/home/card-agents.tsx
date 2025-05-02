@@ -1,6 +1,6 @@
-import React from "react";
 import { Card, CardBody } from "@nextui-org/react";
 import Image from "next/image";
+import React from "react";
 
 const pictureUsers = [
   "https://i.pravatar.cc/150?u=a042581f4e29026024d",

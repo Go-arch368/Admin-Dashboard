@@ -1,5 +1,5 @@
-import React from "react";
 import { cn } from "@nextui-org/react"; // or use clsx/classnames
+import React from "react";
 
 // SidebarWrapper component
 export const SidebarWrapper = ({

@@ -1,9 +1,10 @@
 // components/client-layout-wrapper.tsx
 "use client";
 
-import { Layout } from "./layout";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { Layout } from "./layout";
 
 export default function ClientLayoutWrapper({
   children,

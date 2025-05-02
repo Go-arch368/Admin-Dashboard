@@ -1,14 +1,16 @@
 "use client";
 import { Navbar, NavbarContent } from "@nextui-org/react";
-import React from "react";
-import { Box } from "../styles/box";
-import { UserDropdown } from "./user-dropdown";
+import { Menu } from "lucide-react";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { useSidebarContext } from "../layout/layout-context";
+import { Box } from "../styles/box";
+
 import DarkModeSwitch from "./darkmodeswitch";
 import FullScreenToggle from "./FullScreenToggle";
-import { useSidebarContext } from "../layout/layout-context";
-import { Menu } from "lucide-react";
 import LocationModal from "./LocationModal";
+import { UserDropdown } from "./user-dropdown";
 
 interface Props {
   children: React.ReactNode;

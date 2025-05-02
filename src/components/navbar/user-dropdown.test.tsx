@@ -1,7 +1,9 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { UserDropdown } from "./user-dropdown";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { UserDropdown } from "./user-dropdown";
+
 
 // Mock dependencies with proper ARIA roles
 jest.mock("next-themes", () => ({

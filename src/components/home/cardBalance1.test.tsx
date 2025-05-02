@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { CardBalance1 } from "@/components/home/card-balance1"; // Adjust the import path as necessary
 import { ThemeProvider } from "next-themes";
+
+import { CardBalance1 } from "@/components/home/card-balance1"; // Adjust the import path as necessary
 
 // Mocking the `useTheme` hook from `next-themes`
 jest.mock("next-themes", () => ({

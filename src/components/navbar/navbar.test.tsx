@@ -1,7 +1,9 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { NavbarWrapper } from "./navbar";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { NavbarWrapper } from "./navbar";
+
 
 // Mock child components and hooks
 jest.mock("../icons/navbar/github-icon", () => ({

@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/layout";
-import StepperComponents from "@/components/stepper/stepperComponents";
 import ContactAndTimings from "@/components/stepper/contactndtimings";
 import { ModeToggle } from "@/components/stepper/mode-toggle";
+import StepperComponents from "@/components/stepper/stepperComponents";
 export default function ContactndTimings(){
   return(
     <>

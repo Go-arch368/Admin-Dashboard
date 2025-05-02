@@ -1,10 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
-import { Pencil } from "lucide-react";
-import businessData from "@/datas/businessData.json";
 import axios from "axios";
+import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
+import businessData from "@/datas/businessData.json";
+
 
 const countryCodes = [
   { code: "+1", country: "US" },
@@ -37,13 +39,31 @@ interface Service {
   price: string;
 }
 
+interface Location {
+  address: string;
+  city: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+interface Contact {
+  phone?: string;
+  email?: string;
+  website?: string;
+}
+
+interface Timings {
+  [key: string]: string;
+}
+
 interface Business {
   businessName: string;
   description: string;
-  location: any;
-  contact: any;
+  location: Location;
+  contact: Contact;
   services: Service[];
-  timings: any;
+  timings: Timings;
   gallery: string[];
   faqs: FAQ[];
   cta: CTA;
@@ -69,23 +89,25 @@ interface PublishedBusinessData {
     businessName: string;
     description: string;
   };
-  location: {
-    address: string;
-    city: string;
-    state?: string;
-    postalCode?: string;
-    country?: string;
-  };
-  contact: {
-    phone?: string;
-    email?: string;
-    website?: string;
-  };
+  location: Location;
+  contact: Contact;
   services: Service[];
-  timings: { [key: string]: string };
+  timings: Timings;
   gallery: string[];
   faqs: FAQ[];
   cta: CTA;
+}
+
+interface ApiResponse {
+  welcome?: { completed?: boolean; category?: string; subcategory?: string };
+  gallery?: string[];
+  faqs?: FAQ[];
+  cta?: CTA;
+  business?: { businessName?: string; description?: string };
+  location?: Location;
+  contact?: Contact;
+  services?: Service[];
+  timings?: Timings;
 }
 
 const api = axios.create({
@@ -96,7 +118,7 @@ const api = axios.create({
   },
 });
 
-const areObjectsEqual = (obj1: any, obj2: any): boolean => {
+const areObjectsEqual = (obj1: unknown, obj2: unknown): boolean => {
   if (obj1 === obj2) return true;
   if (typeof obj1 !== "object" || typeof obj2 !== "object" || obj1 == null || obj2 == null) {
     return obj1 === obj2;
@@ -108,7 +130,7 @@ const areObjectsEqual = (obj1: any, obj2: any): boolean => {
   if (keys1.length !== keys2.length) return false;
 
   for (const key of keys1) {
-    if (!keys2.includes(key) || !areObjectsEqual(obj1[key], obj2[key])) {
+    if (!keys2.includes(key) || !areObjectsEqual((obj1 as Record<string, unknown>)[key], (obj2 as Record<string, unknown>)[key])) {
       return false;
     }
   }
@@ -129,7 +151,7 @@ const GalleryFAQsAndCTA = () => {
   const [isPublished, setIsPublished] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const initialBusiness = businessData.subcategories[0].businesses[0];
+  const initialBusiness = businessData.subcategories[0].businesses[0] as Business;
 
   useEffect(() => {
     if (typeof window === "undefined" || isPublished) return;
@@ -158,21 +180,16 @@ const GalleryFAQsAndCTA = () => {
     if (initialized || typeof window === "undefined") return;
 
     const publishFormData = localStorage.getItem(PUBLISH_FORM_DATA_KEY);
-    const isPublished = publishFormData ? JSON.parse(publishFormData).published : false;
+    const isPublishedFromStorage = publishFormData ? JSON.parse(publishFormData).published : false;
     const editMode = localStorage.getItem(EDIT_MODE_KEY) === "true";
     const globalChanges = localStorage.getItem(HAS_CHANGES_KEY) === "true";
-    setIsEditMode(editMode || !isPublished);
-    setIsPublished(isPublished);
+    setIsEditMode(editMode || !isPublishedFromStorage);
+    setIsPublished(isPublishedFromStorage);
     setHasChanges(globalChanges);
 
-    console.log("Initialization:", { isPublished, isEditMode: editMode || !isPublished, hasChanges: globalChanges });
+    console.log("Initialization:", { isPublished: isPublishedFromStorage, isEditMode: editMode || !isPublishedFromStorage, hasChanges: globalChanges });
 
-    let parsedApiResponse: {
-      welcome?: { completed?: boolean; category?: string; subcategory?: string };
-      gallery?: string[];
-      faqs?: FAQ[];
-      cta?: CTA;
-    } = {};
+    let parsedApiResponse: ApiResponse = {};
 
     const apiResponse = localStorage.getItem("apiResponse");
     if (apiResponse && apiResponse !== "{}" && apiResponse !== '""') {
@@ -194,13 +211,13 @@ const GalleryFAQsAndCTA = () => {
         console.error("Error parsing savedFormData:", err);
       }
     } else {
-      const businessFormData = JSON.parse(localStorage.getItem("businessInfoFormData") || "{}");
-      const locationFormData: { subcategories?: { businesses?: { location: any }[] }[] } = JSON.parse(
+      const businessFormData = JSON.parse(localStorage.getItem("businessInfoFormData") || "{}") as FormData;
+      const locationFormData: { subcategories?: { businesses?: { location: Location }[] }[] } = JSON.parse(
         localStorage.getItem("locationFormData") || '{"subcategories":[{"businesses":[{"location":{}}]}]}'
       );
-      const contactAndTimingsFormData: { subcategories?: { businesses?: { contact?: any; timings?: any }[] }[] } =
+      const contactAndTimingsFormData: { subcategories?: { businesses?: { contact?: Contact; timings?: Timings }[] }[] } =
         JSON.parse(localStorage.getItem("contactAndTimingsFormData") || '{"subcategories":[{"businesses":[{}]}]}');
-      const servicesFormData = JSON.parse(localStorage.getItem("servicesFormData") || "{}");
+      const servicesFormData = JSON.parse(localStorage.getItem("servicesFormData") || "{}") as FormData;
 
       setFormData({
         subcategories: [
@@ -279,17 +296,17 @@ const GalleryFAQsAndCTA = () => {
     localStorage.setItem(CALL_COUNTRY_CODE_KEY, callCountryCode);
 
     const storedApiResponse = localStorage.getItem("apiResponse");
-    let parsedApiResponse: any = {};
+    let parsedApiResponse: ApiResponse = {};
     try {
       parsedApiResponse = storedApiResponse ? JSON.parse(storedApiResponse) : {};
     } catch (err) {
       console.error("Error parsing stored apiResponse:", err);
     }
 
-    const currentBusiness: Business = formData.subcategories?.[0]?.businesses?.[0] || {
+    const currentBusinessData: Business = formData.subcategories?.[0]?.businesses?.[0] || {
       businessName: "",
       description: "",
-      location: {},
+      location: { address: "", city: "" },
       contact: {},
       services: [],
       timings: {},
@@ -300,16 +317,16 @@ const GalleryFAQsAndCTA = () => {
     const currentCompleteData: PublishedBusinessData = {
       welcome: welcomeData,
       business: {
-        businessName: currentBusiness.businessName || "",
-        description: currentBusiness.description || "",
+        businessName: currentBusinessData.businessName || "",
+        description: currentBusinessData.description || "",
       },
-      location: currentBusiness.location || {},
-      contact: currentBusiness.contact || {},
-      services: currentBusiness.services || [],
-      timings: currentBusiness.timings || {},
-      gallery: currentBusiness.gallery || [],
-      faqs: currentBusiness.faqs || [],
-      cta: currentBusiness.cta || { call: "", bookUrl: "", getDirections: "" },
+      location: currentBusinessData.location || { address: "", city: "" },
+      contact: currentBusinessData.contact || {},
+      services: currentBusinessData.services || [],
+      timings: currentBusinessData.timings || {},
+      gallery: currentBusinessData.gallery || [],
+      faqs: currentBusinessData.faqs || [],
+      cta: currentBusinessData.cta || { call: "", bookUrl: "", getDirections: "" },
     };
 
     const hasLocalChanges = !areObjectsEqual(currentCompleteData, parsedApiResponse);
@@ -328,14 +345,14 @@ const GalleryFAQsAndCTA = () => {
     });
   }, [formData, callCountryCode, initialized, isEditMode, welcomeData]);
 
-  const updateFormData = (path: string, value: any) => {
+  const updateFormData = (path: string, value: string | CTA) => {
     if (!formData || !isEditMode) return;
     const keys = path.split(".");
-    const newData = JSON.parse(JSON.stringify(formData));
-    let current = newData;
+    const newData = JSON.parse(JSON.stringify(formData)) as FormData;
+    let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
 
     for (let i = 0; i < keys.length - 1; i++) {
-      current = current[keys[i]];
+      current = current[keys[i]] as Record<string, unknown>;
     }
     current[keys[keys.length - 1]] = value;
 
@@ -343,47 +360,55 @@ const GalleryFAQsAndCTA = () => {
     localStorage.setItem(HAS_CHANGES_KEY, "true");
   };
 
-  const handleArrayChange = (arrayPath: string, index: number, field: string, value: any) => {
+  const handleArrayChange = (arrayPath: string, index: number, field: string, value: string) => {
     if (!formData || !isEditMode) return;
-    const newData = JSON.parse(JSON.stringify(formData));
+    const newData = JSON.parse(JSON.stringify(formData)) as FormData;
     const keys = arrayPath.split(".");
-    let current = newData;
+    let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
 
     for (let i = 0; i < keys.length; i++) {
-      current = current[keys[i]];
+      current = current[keys[i]] as Record<string, unknown>;
     }
 
-    current[index][field] = value;
+    ((current as unknown) as FAQ[])[index][field as keyof FAQ] = value;
     setFormData(newData);
     localStorage.setItem(HAS_CHANGES_KEY, "true");
   };
 
-  const addArrayItem = (arrayPath: string, newItem: any) => {
+  const addArrayItem = (arrayPath: string, newItem: FAQ | string) => {
     if (!formData || !isEditMode) return;
-    const newData = JSON.parse(JSON.stringify(formData));
+    const newData = JSON.parse(JSON.stringify(formData)) as FormData;
     const keys = arrayPath.split(".");
-    let current = newData;
+    let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
 
     for (let i = 0; i < keys.length; i++) {
-      current = current[keys[i]];
+      current = current[keys[i]] as Record<string, unknown>;
     }
 
-    current.push(newItem);
+    if (Array.isArray(current)) {
+      (current as unknown[]).push(newItem);
+    } else {
+      console.error("Expected an array but got:", current);
+    }
     setFormData(newData);
     localStorage.setItem(HAS_CHANGES_KEY, "true");
   };
 
   const removeArrayItem = (arrayPath: string, index: number) => {
     if (!formData || !isEditMode) return;
-    const newData = JSON.parse(JSON.stringify(formData));
+    const newData = JSON.parse(JSON.stringify(formData)) as FormData;
     const keys = arrayPath.split(".");
-    let current = newData;
+    let current: Record<string, unknown> = newData as unknown as Record<string, unknown>;
 
     for (let i = 0; i < keys.length; i++) {
-      current = current[keys[i]];
+      current = current[keys[i]] as Record<string, unknown>;
     }
 
-    current.splice(index, 1);
+    if (Array.isArray(current)) {
+      current.splice(index, 1);
+    } else {
+      console.error("Expected an array but got:", current);
+    }
     setFormData(newData);
     localStorage.setItem(HAS_CHANGES_KEY, "true");
   };
@@ -404,7 +429,7 @@ const GalleryFAQsAndCTA = () => {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      addArrayItem("subcategories.0.businesses.0.gallery", reader.result);
+      addArrayItem("subcategories.0.businesses.0.gallery", reader.result as string);
       localStorage.setItem(HAS_CHANGES_KEY, "true");
     };
     reader.readAsDataURL(file);
@@ -444,17 +469,17 @@ const GalleryFAQsAndCTA = () => {
       const servicesFormDataRaw = localStorage.getItem("servicesFormData") || "{}";
 
       let businessFormData: FormData = { subcategories: [{ businesses: [] }] };
-      let locationFormData: { subcategories?: { businesses?: { location: any }[] }[] } = {
-        subcategories: [{ businesses: [{ location: {} }] }],
+      let locationFormData: { subcategories?: { businesses?: { location: Location }[] }[] } = {
+        subcategories: [{ businesses: [{ location: { address: "", city: "" } }] }],
       };
-      let contactAndTimingsFormData: { subcategories?: { businesses?: { contact?: any; timings?: any }[] }[] } = {
+      let contactAndTimingsFormData: { subcategories?: { businesses?: { contact?: Contact; timings?: Timings }[] }[] } = {
         subcategories: [{ businesses: [{}] }],
       };
       let servicesFormData: FormData = { subcategories: [{ businesses: [] }] };
 
       try {
         businessFormData = JSON.parse(businessFormDataRaw) as FormData || { subcategories: [{ businesses: [] }] };
-        locationFormData = JSON.parse(locationFormDataRaw) || { subcategories: [{ businesses: [{ location: {} }] }] };
+        locationFormData = JSON.parse(locationFormDataRaw) || { subcategories: [{ businesses: [{ location: { address: "", city: "" } }] }] };
         contactAndTimingsFormData = JSON.parse(contactAndTimingsFormDataRaw) || {
           subcategories: [{ businesses: [{}] }],
         };
@@ -464,10 +489,10 @@ const GalleryFAQsAndCTA = () => {
         throw new Error("Invalid data in localStorage.");
       }
 
-      const currentBusiness = formData.subcategories?.[0]?.businesses?.[0] || {
+      const business: Business = formData.subcategories?.[0]?.businesses?.[0] || {
         businessName: "",
         description: "",
-        location: {},
+        location: { address: "", city: "" },
         contact: {},
         services: [],
         timings: {},
@@ -476,7 +501,7 @@ const GalleryFAQsAndCTA = () => {
         cta: { call: "", bookUrl: "", getDirections: "" },
       };
       const contactData =
-        contactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.contact || currentBusiness.contact || {};
+        contactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.contact || business.contact || {};
       const phone = contactData.phone || "";
       const email = contactData.email || "";
       const website = contactData.website || "";
@@ -489,15 +514,15 @@ const GalleryFAQsAndCTA = () => {
         business: {
           businessName:
             businessFormData.subcategories?.[0]?.businesses?.[0]?.businessName ||
-            currentBusiness.businessName ||
+            business.businessName ||
             "",
           description:
             businessFormData.subcategories?.[0]?.businesses?.[0]?.description ||
-            currentBusiness.description ||
+            business.description ||
             "",
         },
         location:
-          locationFormData.subcategories?.[0]?.businesses?.[0]?.location || currentBusiness.location || {
+          locationFormData.subcategories?.[0]?.businesses?.[0]?.location || business.location || {
             address: "",
             city: "",
           },
@@ -507,15 +532,15 @@ const GalleryFAQsAndCTA = () => {
           website,
         },
         services:
-          servicesFormData.subcategories?.[0]?.businesses?.[0]?.services || currentBusiness.services || [],
+          servicesFormData.subcategories?.[0]?.businesses?.[0]?.services || business.services || [],
         timings:
-          contactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.timings || currentBusiness.timings || {},
-        gallery: currentBusiness.gallery || [],
-        faqs: currentBusiness.faqs || [],
+          contactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.timings || business.timings || {},
+        gallery: business.gallery || [],
+        faqs: business.faqs || [],
         cta: {
-          call: currentBusiness.cta.call || "",
-          bookUrl: currentBusiness.cta.bookUrl || "",
-          getDirections: currentBusiness.cta.getDirections || "",
+          call: business.cta.call || "",
+          bookUrl: business.cta.bookUrl || "",
+          getDirections: business.cta.getDirections || "",
         },
       };
 
@@ -542,9 +567,7 @@ const GalleryFAQsAndCTA = () => {
         response = await api.post("/data", completeBusinessData);
         localStorage.setItem("lastPublishedBusinessId", response.data.id);
         console.log("New business published with ID:", response.data.id);
-        
       }
-      const savedBusiness = response.data;
 
       localStorage.setItem(PUBLISH_FORM_DATA_KEY, JSON.stringify({ published: true }));
       localStorage.setItem(EDIT_MODE_KEY, "false");
@@ -588,7 +611,7 @@ const GalleryFAQsAndCTA = () => {
   const currentBusiness = formData.subcategories?.[0]?.businesses?.[0] || {
     businessName: "",
     description: "",
-    location: {},
+    location: { address: "", city: "" },
     contact: {},
     services: [],
     timings: {},
@@ -674,7 +697,7 @@ const GalleryFAQsAndCTA = () => {
             )}
             {isEditMode && (
               <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-                <label className="cursor-pointer">
+                <label htmlFor="image-upload" className="cursor-pointer">
                   <input
                     type="file"
                     accept="image/jpeg,image/png"
@@ -715,7 +738,7 @@ const GalleryFAQsAndCTA = () => {
           <h3 className="text-lg font-semibold mb-4 text-gray-700">Call to Action</h3>
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[250px]">
-              <label id="call-label" className="block mb-2 font-medium text-gray-700">
+              <label id="call-label" htmlFor="call-number" className="block mb-2 font-medium text-gray-700">
                 Call Number:
               </label>
               <div className="flex" role="group" aria-labelledby="call-label">

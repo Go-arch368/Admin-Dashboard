@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+
 import { CardAgents } from "@/components/home/card-agents"; // Adjust the import path as necessary
 import "@testing-library/jest-dom";
 

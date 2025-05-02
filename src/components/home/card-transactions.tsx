@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
 import { Card, CardBody } from "@nextui-org/react";
-import { Flex } from "../styles/flex";
+import Image from "next/image";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { Flex } from "../styles/flex";
+
 
 export const CardTransactions = () => {
   const { theme } = useTheme();

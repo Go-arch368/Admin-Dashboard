@@ -1,5 +1,6 @@
-import { CircleUser } from "lucide-react";
 import classNames from "classnames";
+import { CircleUser } from "lucide-react";
+
 import Contact from "../../types/Contact";
 
 const statusColor = {

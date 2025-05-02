@@ -1,10 +1,12 @@
 "use client";
-import React from "react";
-import { SidebarItem } from "./sidebar-item";
-import { useSidebarContext } from "../layout/layout-context";
+import { MessageCircle, LayoutDashboard, TableOfContents } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { MessageCircle, LayoutDashboard, TableOfContents } from "lucide-react";
+import React from "react";
+
+import { useSidebarContext } from "../layout/layout-context";
+
+import { SidebarItem } from "./sidebar-item";
 
 export const SidebarWrapper = () => {
   const pathname = usePathname();

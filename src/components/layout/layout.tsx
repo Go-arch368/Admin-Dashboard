@@ -1,10 +1,12 @@
 "use client";
 import React from "react";
+
+import { Footer } from "../Footer";
 import { useLockedBody } from "../hooks/useBodyLock";
 import { NavbarWrapper } from "../navbar/navbar";
 import { SidebarWrapper } from "../sidebar/SideBar";
+
 import { SidebarContext } from "./layout-context";
-import { Footer } from "../Footer";
 
 interface Props {
   children: React.ReactNode;

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { RenderCell } from "@/components/table/render-cell";
+
 import { users } from "@/components/table/data";
+import { RenderCell } from "@/components/table/render-cell";
 
 // Mock the icons
 jest.mock("../icons/table/delete-icon", () => ({

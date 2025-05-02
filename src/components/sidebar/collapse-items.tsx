@@ -1,8 +1,10 @@
 "use client";
-import React from "react";
 import { Accordion, AccordionItem } from "@nextui-org/react";
-import { ChevronUpIcon } from "../icons/sidebar/chevron-up-icon";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { ChevronUpIcon } from "../icons/sidebar/chevron-up-icon";
+
 
 interface Props {
   icon: React.ReactNode;

@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
 import businessData from "@/datas/businessData.json";
 
 const Location = () => {
@@ -103,6 +104,7 @@ const Location = () => {
 
   const handleNext = () => {
     const dataToSave = {
+        
       subcategories: [
         {
           businesses: [
@@ -110,8 +112,9 @@ const Location = () => {
               location: formData,
             },
           ],
-        },
-      ],
+        }
+        ],
+      
     };
     localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
     localStorage.setItem("hasChanges", "true"); // Mark change
@@ -171,8 +174,11 @@ const Location = () => {
 
         <div className="mb-6 pb-6 border-b border-gray-200">
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">Address:</label>
+            <label htmlFor="address" className="block mb-2 font-medium text-gray-700">
+              Address:
+            </label>
             <input
+              id="address"
               name="address"
               type="text"
               value={formData.address}
@@ -186,8 +192,11 @@ const Location = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">City:</label>
+            <label htmlFor="city" className="block mb-2 font-medium text-gray-700">
+              City:
+            </label>
             <input
+              id="city"
               name="city"
               type="text"
               value={formData.city}
@@ -201,8 +210,11 @@ const Location = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">State:</label>
+            <label htmlFor="state" className="block mb-2 font-medium text-gray-700">
+              State:
+            </label>
             <input
+              id="state"
               name="state"
               type="text"
               value={formData.state}
@@ -216,8 +228,11 @@ const Location = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">Postal Code:</label>
+            <label htmlFor="postalCode" className="block mb-2 font-medium text-gray-700">
+              Postal Code:
+            </label>
             <input
+              id="postalCode"
               name="postalCode"
               type="text"
               value={formData.postalCode}

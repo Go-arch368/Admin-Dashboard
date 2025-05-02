@@ -1,7 +1,8 @@
-import { CircleUser } from "lucide-react";
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from "@nextui-org/react";
 import classNames from "classnames";
+import { CircleUser } from "lucide-react";
 import { useState } from "react";
+
 import Contact from "../../types/Contact";
 
 type Props = {

@@ -1,5 +1,6 @@
-import { MessageSquare } from "lucide-react";
 import classNames from "classnames";
+import { MessageSquare } from "lucide-react";
+
 import styles from "./ChatMessages.module.css"
 
 export default function ChatMessages({

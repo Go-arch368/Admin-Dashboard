@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/layout";
-import StepperComponents from "@/components/stepper/stepperComponents";
-import ServicesPage from "@/components/stepper/servicespage";
 import { ModeToggle } from "@/components/stepper/mode-toggle";
+import ServicesPage from "@/components/stepper/servicespage";
+import StepperComponents from "@/components/stepper/stepperComponents";
 export default function Services(){
   return(
     <>

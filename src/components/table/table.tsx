@@ -1,5 +1,4 @@
 "use client";
-import React, { useState } from "react";
 import {
   Table,
   TableHeader,
@@ -9,6 +8,8 @@ import {
   TableCell,
   Button,
 } from "@nextui-org/react";
+import React, { useState } from "react";
+
 import { columns, users } from "./data";
 import { RenderCell } from "./render-cell";
 

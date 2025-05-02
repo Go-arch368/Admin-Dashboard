@@ -1,7 +1,9 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { NotificationsDropdown } from "./notifications-dropdown";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { NotificationsDropdown } from "./notifications-dropdown";
+
 
 // Mock dependencies
 jest.mock("../icons/navbar/notification-icon", () => ({

@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
+
 import { CardTransactions } from "@/components/home/card-transactions"; // Adjust the import path as necessary
+
 import "@testing-library/jest-dom";
 import { ThemeProvider } from "next-themes"; // Wrap with ThemeProvider
 

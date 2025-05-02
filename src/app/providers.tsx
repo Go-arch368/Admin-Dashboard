@@ -1,7 +1,7 @@
 "use client";
+import { HeroUIProvider } from "@heroui/react"; // ✅ Import HeroUI
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { HeroUIProvider } from "@heroui/react"; // ✅ Import HeroUI
 import { useEffect, useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {

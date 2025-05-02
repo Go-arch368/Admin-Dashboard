@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/layout";
-import StepperComponents from "@/components/stepper/stepperComponents";
-import ReviewAndPublishPage from "@/components/stepper/reviewndpublishpage";
 import { ModeToggle } from "@/components/stepper/mode-toggle";
+import ReviewAndPublishPage from "@/components/stepper/reviewndpublishpage";
+import StepperComponents from "@/components/stepper/stepperComponents";
 export default function ReviewndPublish(){
   return(
     <>

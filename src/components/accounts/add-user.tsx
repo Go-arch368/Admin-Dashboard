@@ -10,6 +10,7 @@ import {
   ModalFooter,
 } from "@nextui-org/react";
 import React from "react";
+
 import { Flex } from "../styles/flex";
 
 export const AddUser: React.FC = () => {

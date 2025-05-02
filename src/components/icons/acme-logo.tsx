@@ -1,6 +1,7 @@
-import React from "react";
-import { Svg } from "../styles/svg";
 import { useTheme } from "next-themes"; // Importing useTheme from next-themes
+import React from "react";
+
+import { Svg } from "../styles/svg";
 
 interface AcmeLogoProps {
   className?: string;

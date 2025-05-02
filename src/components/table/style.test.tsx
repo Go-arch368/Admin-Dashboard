@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+
 import { IconButton, StyledBadge } from "@/components/table/table.styled";
 
 describe("IconButton", () => {

@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
 import { Card, CardBody } from "@nextui-org/react";
-import { Community } from "../icons/community";
 import { useTheme } from "next-themes";
+import React from "react";
+
+import { Community } from "../icons/community";
+
 
 export const CardBalance1 = () => {
   const { theme } = useTheme();

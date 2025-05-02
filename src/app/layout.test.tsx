@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
+
 import RootLayout from "@/app/layout"; // Adjust the import according to your file structure
-import { ThemeProvider } from "@/components/theme-provider";
 import { Layout } from "@/components/layout/layout";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Mock the Analytics component since it's a third-party dependency
 jest.mock("@vercel/analytics/react", () => ({
