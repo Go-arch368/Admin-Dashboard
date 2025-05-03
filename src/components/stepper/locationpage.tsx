@@ -43,20 +43,23 @@ const Location = () => {
       }
     }
 
-    if (!existingData && apiResponse) {
+    if (!existingData && apiResponse && apiResponse !== "{}" && apiResponse !== '""') {
       try {
         const parsedApiResponse = JSON.parse(apiResponse);
-        const locationData =
-          parsedApiResponse?.location?.subcategories?.[0]?.businesses?.[0]?.location ||
-          parsedApiResponse?.location ||
-          {};
-        if (locationData.address && locationData.city) {
-          existingData = {
-            address: locationData.address || "",
-            city: locationData.city || "",
-            state: locationData.state || "",
-            postalCode: locationData.postalCode || "",
-          };
+        // Only use apiResponse if it has publish: true
+        if (parsedApiResponse.publish === true) {
+          const locationData =
+            parsedApiResponse?.location?.subcategories?.[0]?.businesses?.[0]?.location ||
+            parsedApiResponse?.location ||
+            {};
+          if (locationData.address && locationData.city) {
+            existingData = {
+              address: locationData.address || "",
+              city: locationData.city || "",
+              state: locationData.state || "",
+              postalCode: locationData.postalCode || "",
+            };
+          }
         }
       } catch (e) {
         console.error("Error parsing api response", e);
@@ -80,6 +83,19 @@ const Location = () => {
     }
   }, []);
 
+  const isFormValid = () => {
+    const { address, city, state, postalCode } = formData;
+    // Basic validation: all fields required, postal code must be 5-10 digits
+    const postalCodeRegex = /^\d{5,10}$/;
+    return (
+      address.trim() !== "" &&
+      city.trim() !== "" &&
+      state.trim() !== "" &&
+      postalCode.trim() !== "" &&
+      postalCodeRegex.test(postalCode.trim())
+    );
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => {
@@ -96,12 +112,16 @@ const Location = () => {
         ],
       };
       localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
-      localStorage.setItem("hasChanges", "true"); // Mark change
+      localStorage.setItem("hasChanges", "true");
       return updatedFormData;
     });
   };
 
   const handleNext = () => {
+    if (!isFormValid()) {
+      alert("Please fill in all required fields with valid data (postal code must be 5-10 digits).");
+      return;
+    }
     const dataToSave = {
       subcategories: [
         {
@@ -114,7 +134,7 @@ const Location = () => {
       ],
     };
     localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
-    localStorage.setItem("hasChanges", "true"); // Mark change
+    localStorage.setItem("hasChanges", "true");
     router.push("/contact&timings");
   };
 
@@ -133,9 +153,10 @@ const Location = () => {
         ],
       };
       localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
+      localStorage.setItem("hasChanges", "true");
     } else {
       localStorage.setItem("isEditModeActive", "true");
-      localStorage.setItem("hasChanges", "true"); // Set changes on edit
+      localStorage.setItem("hasChanges", "true");
       console.log("Edit mode enabled via Location pencil");
     }
     setIsEditing(!isEditing);
@@ -171,8 +192,11 @@ const Location = () => {
 
         <div className="mb-6 pb-6 border-b border-gray-200">
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">Address:</label>
+            <label htmlFor="address" className="block mb-2 font-medium text-gray-700">
+              Address:
+            </label>
             <input
+              id="address"
               name="address"
               type="text"
               value={formData.address}
@@ -186,8 +210,11 @@ const Location = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">City:</label>
+            <label htmlFor="city" className="block mb-2 font-medium text-gray-700">
+              City:
+            </label>
             <input
+              id="city"
               name="city"
               type="text"
               value={formData.city}
@@ -201,8 +228,11 @@ const Location = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">State:</label>
+            <label htmlFor="state" className="block mb-2 font-medium text-gray-700">
+              State:
+            </label>
             <input
+              id="state"
               name="state"
               type="text"
               value={formData.state}
@@ -216,8 +246,11 @@ const Location = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">Postal Code:</label>
+            <label htmlFor="postalCode" className="block mb-2 font-medium text-gray-700">
+              Postal Code:
+            </label>
             <input
+              id="postalCode"
               name="postalCode"
               type="text"
               value={formData.postalCode}
@@ -252,7 +285,7 @@ const Location = () => {
             className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700"
             color="primary"
             onClick={handleNext}
-            disabled={!formData.address.trim() || !formData.city.trim()}
+            disabled={!isFormValid()}
           >
             {isReadOnly ? "Next" : "Save & Next"}
           </Button>

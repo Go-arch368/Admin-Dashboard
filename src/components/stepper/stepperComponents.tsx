@@ -13,10 +13,67 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
+interface WelcomeData {
+  category: string;
+  subcategory: string;
+}
+
+interface BusinessData {
+  businessName: string;
+  description: string;
+}
+
+interface LocationData {
+  address: string;
+  city: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+interface ContactData {
+  phone?: string;
+  email?: string;
+  website?: string;
+}
+
+interface TimingsData {
+  [key: string]: string;
+}
+
+interface ServiceData {
+  name: string;
+  price: string;
+}
+
+interface FAQData {
+  question: string;
+  answer: string;
+}
+
+interface CTAData {
+  call: string;
+  bookUrl: string;
+  getDirections: string;
+}
+
+interface PublishedBusinessData {
+  welcome?: WelcomeData;
+  business?: BusinessData;
+  location?: LocationData;
+  contact?: ContactData;
+  timings?: TimingsData;
+  services?: ServiceData[];
+  gallery?: string[];
+  faqs?: FAQData[];
+  cta?: CTAData;
+  publish?: boolean;
+}
+
 interface Step {
   label: string;
   path: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   storageKey: string;
   apiResponseKey: string | string[];
 }
@@ -86,14 +143,13 @@ export default function Stepper() {
     if (!isMounted) return;
 
     const apiResponse = localStorage.getItem("apiResponse");
-    let apiData: Record<string, any> = {};
+    let apiData: PublishedBusinessData = {};
     let hasApiResponse = false;
 
     try {
       if (apiResponse && apiResponse !== '""') {
-        apiData = JSON.parse(apiResponse);
-        // Only consider apiResponse valid if isPublished is true
-        hasApiResponse = apiData.isPublished === true;
+        apiData = JSON.parse(apiResponse) as PublishedBusinessData;
+        hasApiResponse = apiData.publish === true;
       }
     } catch (error) {
       console.error("Error parsing apiResponse:", error);
@@ -112,21 +168,17 @@ export default function Stepper() {
           apiDataExists = true;
         } else if (Array.isArray(step.apiResponseKey)) {
           apiDataExists = step.apiResponseKey.every(
-            (key) => apiData[key] && Object.keys(apiData[key]).length > 0
+            (key) => apiData[key as keyof PublishedBusinessData] && Object.keys(apiData[key as keyof PublishedBusinessData] || {}).length > 0
           );
         } else {
           apiDataExists =
-            apiData[step.apiResponseKey] &&
-            Object.keys(apiData[step.apiResponseKey]).length > 0;
+            !!apiData[step.apiResponseKey as keyof PublishedBusinessData] &&
+            Object.keys(apiData[step.apiResponseKey as keyof PublishedBusinessData] || {}).length > 0;
         }
       }
 
-      // Only mark as completed if:
-      // 1. The step has data (formDataExists or apiDataExists).
-      // 2. The step is the current step or a previous step (index <= currentStep).
-      // 3. In edit mode (hasApiResponse), prioritize apiDataExists; otherwise, use formDataExists.
       acc[step.path] =
-        index <= currentStep && // Enforce sequential progression
+        index <= currentStep &&
         (hasApiResponse ? apiDataExists : formDataExists);
 
       return acc;
@@ -159,6 +211,10 @@ export default function Stepper() {
   };
 
   const handleStepNavigation = (index: number) => {
+    if (index > currentStep && !hasData[steps[currentStep].path]) {
+      console.log(`Cannot navigate to ${steps[index].label}: Current step incomplete`);
+      return;
+    }
     router.push(steps[index].path);
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
@@ -232,7 +288,7 @@ export default function Stepper() {
           layout
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          <Icon size={isCurrent ? 22 : 20} aria-hidden="true" />
+          <Icon width={isCurrent ? 22 : 20} height={isCurrent ? 22 : 20} aria-hidden="true" />
         </motion.div>
       </motion.div>
     );

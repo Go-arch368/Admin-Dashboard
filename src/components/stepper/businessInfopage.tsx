@@ -23,14 +23,13 @@ export default function BusinessInformation() {
     const apiResponse = localStorage.getItem("apiResponse");
 
     let existingData = null;
-    
+
     if (businessFormData && businessFormData !== "null") {
       try {
         const parsedData = JSON.parse(businessFormData);
         existingData = {
           businessName: parsedData.subcategories?.[0]?.businesses?.[0]?.businessName || "",
           description: parsedData.subcategories?.[0]?.businesses?.[0]?.description || "",
-          isPublished: false
         };
       } catch (e) {
         console.error("Error parsing draft data", e);
@@ -44,7 +43,6 @@ export default function BusinessInformation() {
           existingData = {
             businessName: parsedApiResponse.business.businessName,
             description: parsedApiResponse.business.description || "",
-            isPublished: true
           };
         }
       } catch (e) {
@@ -55,11 +53,11 @@ export default function BusinessInformation() {
     if (existingData) {
       setFormData({
         businessName: existingData.businessName,
-        description: existingData.description
+        description: existingData.description,
       });
       setInitialData({
         businessName: existingData.businessName,
-        description: existingData.description
+        description: existingData.description,
       });
       setHasExistingData(true);
       setIsEditing(false);
@@ -75,18 +73,28 @@ export default function BusinessInformation() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     localStorage.setItem("hasChanges", "true"); // Mark change
   };
 
+  const isFormValid = () => formData.businessName.trim() !== "" && formData.description.trim() !== "";
+
   const handleNext = () => {
+    if (!isFormValid()) {
+      alert("Please fill in all required fields.");
+      return;
+    }
     const dataToSave = {
-      subcategories: [{
-        businesses: [{
-          businessName: formData.businessName,
-          description: formData.description
-        }]
-      }]
+      subcategories: [
+        {
+          businesses: [
+            {
+              businessName: formData.businessName,
+              description: formData.description,
+            },
+          ],
+        },
+      ],
     };
     localStorage.setItem("businessFormData", JSON.stringify(dataToSave));
     localStorage.setItem("hasChanges", "true"); // Mark change
@@ -136,26 +144,32 @@ export default function BusinessInformation() {
           <h3 className="text-lg font-semibold mb-4 text-gray-700">Basic Information</h3>
 
           <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">Business Name:</label>
+            <label htmlFor="businessName" className="block mb-2 font-medium text-gray-700">
+              Business Name:
+            </label>
             <input
+              id="businessName"
               name="businessName"
               type="text"
               value={formData.businessName}
               onChange={handleInputChange}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${isReadOnly ? 'bg-gray-100' : 'border border-gray-300'} rounded-md focus:ring-2 focus:ring-blue-500`}
+              className={`w-full p-2 ${isReadOnly ? "bg-gray-100" : "border border-gray-300"} rounded-md focus:ring-2 focus:ring-blue-500`}
               placeholder="Enter your business name"
             />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium text-gray-700">Description:</label>
+            <label htmlFor="description" className="block mb-2 font-medium text-gray-700">
+              Description:
+            </label>
             <textarea
+              id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${isReadOnly ? 'bg-gray-100' : 'border border-gray-300'} rounded-md h-24 focus:ring-2 focus:ring-blue-500`}
+              className={`w-full p-2 ${isReadOnly ? "bg-gray-100" : "border border-gray-300"} rounded-md h-24 focus:ring-2 focus:ring-blue-500`}
               placeholder="Describe your business"
             />
           </div>
@@ -168,7 +182,7 @@ export default function BusinessInformation() {
           >
             Back
           </Button>
-          
+
           {isEditing && hasExistingData && (
             <Button
               className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500"
@@ -177,12 +191,12 @@ export default function BusinessInformation() {
               Cancel
             </Button>
           )}
-          
+
           <Button
             className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500"
             color="primary"
             onClick={handleNext}
-            disabled={!formData.businessName.trim()}
+            disabled={!isFormValid()}
           >
             {isReadOnly ? "Next" : "Save & Next"}
           </Button>

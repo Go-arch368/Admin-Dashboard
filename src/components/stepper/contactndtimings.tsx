@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
-import { ClockIcon } from "@heroicons/react/24/outline";
 import { Pencil } from "lucide-react";
 import businessData from "@/datas/businessData.json";
 
@@ -66,11 +65,12 @@ const ContactAndTimings = () => {
       console.error("Error parsing apiResponse:", error);
     }
 
+    // Only set isReadOnly if apiResponse indicates a published state
     const hasPublishedData =
       parsedApiResponse &&
       apiResponse !== "{}" &&
       apiResponse !== '""' &&
-      (parsedApiResponse.contact || parsedApiResponse.timings || parsedApiResponse.cta);
+      parsedApiResponse.publish;
     setIsReadOnly(hasPublishedData);
 
     const savedFormData = localStorage.getItem(FORM_DATA_KEY);
@@ -134,7 +134,7 @@ const ContactAndTimings = () => {
     }
 
     setInitialized(true);
-  }, [initialized]);
+  }, [initialized, closedDays]);
 
   useEffect(() => {
     if (initialized && !isReadOnly) {
@@ -143,7 +143,17 @@ const ContactAndTimings = () => {
       localStorage.setItem(CALL_COUNTRY_CODE_KEY, callCountryCode);
       localStorage.setItem("hasChanges", "true");
     }
-  }, [formData, phoneCountryCode, callCountryCode, initialized, isReadOnly]);
+  }, [formData, phoneCountryCode, callCountryCode, initialized, isReadOnly, closedDays]);
+
+  const isFormValid = () => {
+    const { contact } = formData;
+    // Require at least one contact method and valid email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return (
+      (contact.phone.trim() !== "" || contact.email.trim() !== "" || contact.website.trim() !== "") &&
+      (contact.email.trim() === "" || emailRegex.test(contact.email))
+    );
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) return;
@@ -212,6 +222,10 @@ const ContactAndTimings = () => {
   };
 
   const handleNext = () => {
+    if (!isFormValid()) {
+      alert("Please provide at least one contact method and ensure the email is valid.");
+      return;
+    }
     if (!isReadOnly) {
       const dataToSave = {
         contact: formData.contact,
@@ -304,7 +318,9 @@ const ContactAndTimings = () => {
           <h3 className="text-lg font-semibold mb-4 text-gray-700">Contact Information</h3>
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[250px]">
-              <label className="block mb-2 font-medium text-gray-700">Phone Number:</label>
+              <label htmlFor="contact-phone" className="block mb-2 font-medium text-gray-700">
+                Phone Number:
+              </label>
               <div className="flex">
                 <select
                   value={phoneCountryCode}
@@ -321,6 +337,7 @@ const ContactAndTimings = () => {
                   ))}
                 </select>
                 <input
+                  id="contact-phone"
                   name="contact.phone"
                   type="tel"
                   value={formData.contact.phone}
@@ -334,8 +351,11 @@ const ContactAndTimings = () => {
               </div>
             </div>
             <div className="flex-1 min-w-[250px]">
-              <label className="block mb-2 font-medium text-gray-700">Email:</label>
+              <label htmlFor="contact-email" className="block mb-2 font-medium text-gray-700">
+                Email:
+              </label>
               <input
+                id="contact-email"
                 name="contact.email"
                 type="email"
                 value={formData.contact.email}
@@ -350,8 +370,11 @@ const ContactAndTimings = () => {
           </div>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[250px]">
-              <label className="block mb-2 font-medium text-gray-700">Website:</label>
+              <label htmlFor="contact-website" className="block mb-2 font-medium text-gray-700">
+                Website:
+              </label>
               <input
+                id="contact-website"
                 name="contact.website"
                 type="url"
                 value={formData.contact.website}
@@ -433,6 +456,7 @@ const ContactAndTimings = () => {
             className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700"
             color="primary"
             onClick={handleNext}
+            disabled={!isFormValid()}
           >
             {isReadOnly ? "Next" : "Save & Next"}
           </Button>
