@@ -103,9 +103,8 @@ const Services = () => {
                 services: initialServices,
               },
             ],
-        }
-          ],
-        
+          },
+        ],
       };
       localStorage.setItem("servicesFormData", JSON.stringify(dataToSave));
     } else {
@@ -149,10 +148,9 @@ const Services = () => {
           {services.map((service, index) => (
             <div key={index} className="flex flex-wrap gap-4 mb-4 items-center">
               <div className="flex-1 min-w-[200px]">
-                <label htmlFor={`service-name-${index}`} className="block mb-2 font-medium text-gray-700">Service Name:</label>
+                <label className="block mb-2 font-medium text-gray-700">Service Name:</label>
                 <input
                   type="text"
-                  id={`service-name-${index}`}
                   value={service.name}
                   onChange={(e) => handleServiceChange(index, "name", e.target.value)}
                   readOnly={isReadOnly}
@@ -163,10 +161,9 @@ const Services = () => {
                 />
               </div>
               <div className="flex-1 min-w-[150px]">
-                <label htmlFor={`service-price-${index}`} className="block mb-2 font-medium text-gray-700">Price:</label>
+                <label className="block mb-2 font-medium text-gray-700">Price:</label>
                 <input
                   type="text"
-                  id={`service-price-${index}`}
                   value={service.price}
                   onChange={(e) => handleServiceChange(index, "price", e.target.value)}
                   readOnly={isReadOnly}

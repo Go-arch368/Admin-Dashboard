@@ -1,9 +1,8 @@
 "use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import businessData from "@/datas/businessData.json";
 
 export default function BusinessInformation() {
@@ -24,7 +23,7 @@ export default function BusinessInformation() {
     const apiResponse = localStorage.getItem("apiResponse");
 
     let existingData = null;
-
+    
     if (businessFormData && businessFormData !== "null") {
       try {
         const parsedData = JSON.parse(businessFormData);
@@ -137,11 +136,8 @@ export default function BusinessInformation() {
           <h3 className="text-lg font-semibold mb-4 text-gray-700">Basic Information</h3>
 
           <div className="mb-4">
-            <label htmlFor="businessName" className="block mb-2 font-medium text-gray-700">
-              Business Name:
-            </label>
+            <label className="block mb-2 font-medium text-gray-700">Business Name:</label>
             <input
-              id="businessName"
               name="businessName"
               type="text"
               value={formData.businessName}
@@ -153,11 +149,8 @@ export default function BusinessInformation() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block mb-2 font-medium text-gray-700">
-              Description:
-            </label>
+            <label className="block mb-2 font-medium text-gray-700">Description:</label>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
@@ -175,7 +168,7 @@ export default function BusinessInformation() {
           >
             Back
           </Button>
-
+          
           {isEditing && hasExistingData && (
             <Button
               className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500"
@@ -184,9 +177,9 @@ export default function BusinessInformation() {
               Cancel
             </Button>
           )}
-
+          
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-500 hover:bg-blue-600"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500"
             color="primary"
             onClick={handleNext}
             disabled={!formData.businessName.trim()}

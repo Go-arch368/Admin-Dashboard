@@ -1,31 +1,39 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Plus } from 'lucide-react';
 
-export function ModeToggle({}: object) {
+interface ModeToggleProps {
+  initialHasData?: boolean;
+}
+
+export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
   const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const [hasData, setHasData] = useState(initialHasData);
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     const checkForData = () => {
       try {
         const apiResponse = localStorage.getItem('apiResponse');
-        if (!apiResponse) return false;
+        if (!apiResponse || apiResponse === '""') return false;
 
         const parsed = JSON.parse(apiResponse);
-
-        return parsed && typeof parsed === 'object' &&
-               Object.keys(parsed).length > 0 &&
-               Object.values(parsed).some(val => val !== undefined && val !== null);
-      } catch (_) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // Only consider apiResponse valid if it has isPublished: true
+        return (
+          parsed &&
+          typeof parsed === 'object' &&
+          Object.keys(parsed).length > 0 &&
+          parsed.isPublished === true
+        );
+      } catch (e) {
+        console.error('Error parsing apiResponse:', e);
         return false;
       }
     };
 
     const dataExists = checkForData();
+    setHasData(dataExists);
 
     const forceCreateMode = localStorage.getItem('forceCreateMode');
     setMode(forceCreateMode === 'true' || !dataExists ? 'create' : 'edit');
@@ -33,6 +41,12 @@ export function ModeToggle({}: object) {
     if (forceCreateMode === 'true') {
       localStorage.removeItem('forceCreateMode');
     }
+
+    console.log('Data check:', {
+      hasLocalStorageData: dataExists,
+      currentMode: mode,
+      forceCreateMode: forceCreateMode,
+    });
   }, []);
 
   const handleCreateClick = () => {
@@ -41,6 +55,7 @@ export function ModeToggle({}: object) {
     localStorage.removeItem('apiResponse');
     localStorage.setItem('forceCreateMode', 'true');
     setMode('create');
+    setHasData(false);
 
     setTimeout(() => {
       window.location.reload();

@@ -1,9 +1,8 @@
 "use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import fallbackData from "@/datas/category and subcategory.json";
 
 function getStoredApiResponse() {
@@ -109,13 +108,13 @@ export default function Welcome() {
           {isReadOnly ? (
             <div className="space-y-4">
               <div>
-                <span className="block mb-1 font-medium text-gray-700">Category:</span>
+                <label className="block mb-1 font-medium text-gray-700">Category:</label>
                 <div className="p-2 bg-gray-100 rounded-md">
                   {selectedCategory || "Not selected"}
                 </div>
               </div>
               <div>
-                <span className="block mb-1 font-medium text-gray-700">Subcategory:</span>
+                <label className="block mb-1 font-medium text-gray-700">Subcategory:</label>
                 <div className="p-2 bg-gray-100 rounded-md">
                   {selectedSubcategory || "Not selected"}
                 </div>
@@ -168,7 +167,7 @@ export default function Welcome() {
 
         <div className="flex justify-end">
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-500 hover:bg-blue-600"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500"
             color="primary"
             onClick={handleNext}
             type="button"

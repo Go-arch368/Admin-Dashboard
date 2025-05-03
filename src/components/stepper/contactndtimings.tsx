@@ -1,9 +1,9 @@
 "use client";
-import { Button } from "@heroui/button";
-import { Pencil } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect, useCallback } from "react";
-
+import { Button } from "@heroui/button";
+import { ClockIcon } from "@heroicons/react/24/outline";
+import { Pencil } from "lucide-react";
 import businessData from "@/datas/businessData.json";
 
 const countryCodes = [
@@ -55,7 +55,7 @@ const ContactAndTimings = () => {
   });
   const [isReadOnly, setIsReadOnly] = useState(false);
 
-  const initializeFormData = useCallback(() => {
+  useEffect(() => {
     if (initialized || typeof window === "undefined") return;
 
     const apiResponse = localStorage.getItem("apiResponse");
@@ -134,11 +134,7 @@ const ContactAndTimings = () => {
     }
 
     setInitialized(true);
-  }, [initialized, closedDays]);
-
-  useEffect(() => {
-    initializeFormData();
-  }, [initializeFormData]);
+  }, [initialized]);
 
   useEffect(() => {
     if (initialized && !isReadOnly) {
@@ -308,7 +304,7 @@ const ContactAndTimings = () => {
           <h3 className="text-lg font-semibold mb-4 text-gray-700">Contact Information</h3>
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="phoneNumber" className="block mb-2 font-medium text-gray-700">Phone Number:</label>
+              <label className="block mb-2 font-medium text-gray-700">Phone Number:</label>
               <div className="flex">
                 <select
                   value={phoneCountryCode}
@@ -317,7 +313,6 @@ const ContactAndTimings = () => {
                     isReadOnly ? "bg-gray-100" : ""
                   } focus:ring-2 focus:ring-gray-500`}
                   disabled={isReadOnly}
-                  id="phoneCountryCode"
                 >
                   {countryCodes.map((country) => (
                     <option key={country.code} value={country.code}>
@@ -326,7 +321,6 @@ const ContactAndTimings = () => {
                   ))}
                 </select>
                 <input
-                  id="phoneNumber"
                   name="contact.phone"
                   type="tel"
                   value={formData.contact.phone}
@@ -340,9 +334,8 @@ const ContactAndTimings = () => {
               </div>
             </div>
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="email" className="block mb-2 font-medium text-gray-700">Email:</label>
+              <label className="block mb-2 font-medium text-gray-700">Email:</label>
               <input
-                id="email"
                 name="contact.email"
                 type="email"
                 value={formData.contact.email}
@@ -357,9 +350,8 @@ const ContactAndTimings = () => {
           </div>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="website" className="block mb-2 font-medium text-gray-700">Website:</label>
+              <label className="block mb-2 font-medium text-gray-700">Website:</label>
               <input
-                id="website"
                 name="contact.website"
                 type="url"
                 value={formData.contact.website}

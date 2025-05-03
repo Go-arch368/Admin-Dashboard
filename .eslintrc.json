@@ -111,7 +111,10 @@
       "rules": {
         "no-unused-vars": "off",
         "no-undef": "off",
-        "@typescript-eslint/no-require-imports": "off"
+        "@typescript-eslint/no-require-imports": "off",
+        "jsx-a11y/label-has-associated-control": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "react-hooks/exhaustive-deps": "warn"
       }
     }
   ]

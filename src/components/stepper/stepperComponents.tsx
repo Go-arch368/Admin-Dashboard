@@ -1,15 +1,22 @@
-
 "use client";
 import clsx from "clsx";
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Home, Briefcase, MapPin, Phone, Wrench, CheckCircle, BadgeCheck } from "lucide-react";
+import {
+  Home,
+  Briefcase,
+  MapPin,
+  Phone,
+  Wrench,
+  CheckCircle,
+  BadgeCheck,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 interface Step {
   label: string;
   path: string;
-  icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
+  icon: React.ComponentType<any>;
   storageKey: string;
   apiResponseKey: string | string[];
 }
@@ -64,6 +71,7 @@ export default function Stepper() {
   const pathname = usePathname();
   const router = useRouter();
   const [hasData, setHasData] = useState<Record<string, boolean>>({});
+  const [isPublished, setIsPublished] = useState(false);
 
   const currentStep =
     steps.findIndex((step) => step.path === pathname) === -1
@@ -78,44 +86,54 @@ export default function Stepper() {
     if (!isMounted) return;
 
     const apiResponse = localStorage.getItem("apiResponse");
-    let apiData: Record<string, unknown> = {};
+    let apiData: Record<string, any> = {};
+    let hasApiResponse = false;
 
     try {
       if (apiResponse && apiResponse !== '""') {
         apiData = JSON.parse(apiResponse);
+        // Only consider apiResponse valid if isPublished is true
+        hasApiResponse = apiData.isPublished === true;
       }
     } catch (error) {
       console.error("Error parsing apiResponse:", error);
     }
+    setIsPublished(hasApiResponse);
 
-    const dataPresence = steps.reduce((acc, step) => {
+    const dataPresence = steps.reduce((acc, step, index) => {
       const formDataExists = step.storageKey
         ? !!localStorage.getItem(step.storageKey) &&
           localStorage.getItem(step.storageKey) !== '""'
         : false;
 
       let apiDataExists = false;
-      if (step.apiResponseKey) {
+      if (hasApiResponse && step.apiResponseKey) {
         if (step.apiResponseKey === "any") {
-          apiDataExists = !!apiResponse && apiResponse !== '""';
+          apiDataExists = true;
         } else if (Array.isArray(step.apiResponseKey)) {
           apiDataExists = step.apiResponseKey.every(
             (key) => apiData[key] && Object.keys(apiData[key]).length > 0
           );
         } else {
           apiDataExists =
-            typeof apiData[step.apiResponseKey] === "object" &&
-            apiData[step.apiResponseKey] !== null &&
-            Object.keys(apiData[step.apiResponseKey] as Record<string, unknown>).length > 0;
+            apiData[step.apiResponseKey] &&
+            Object.keys(apiData[step.apiResponseKey]).length > 0;
         }
       }
 
-      acc[step.path] = formDataExists || apiDataExists;
+      // Only mark as completed if:
+      // 1. The step has data (formDataExists or apiDataExists).
+      // 2. The step is the current step or a previous step (index <= currentStep).
+      // 3. In edit mode (hasApiResponse), prioritize apiDataExists; otherwise, use formDataExists.
+      acc[step.path] =
+        index <= currentStep && // Enforce sequential progression
+        (hasApiResponse ? apiDataExists : formDataExists);
+
       return acc;
     }, {} as Record<string, boolean>);
 
     setHasData(dataPresence);
-  }, [isMounted]);
+  }, [isMounted, currentStep]);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -124,7 +142,7 @@ export default function Stepper() {
     const handleStorageChange = (e: StorageEvent) => {
       if (
         e.storageArea === localStorage &&
-        (steps.some((step) => step.storageKey === e.key) || e.key === "apiResponse" || e.key === "publishFormData")
+        (steps.some((step) => step.storageKey === e.key) || e.key === "apiResponse")
       ) {
         checkData();
       }
@@ -147,9 +165,9 @@ export default function Stepper() {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
+  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
     if (event.key === "Enter" || event.key === " ") {
-      handleStepNavigation(currentStep);
+      handleStepNavigation(index);
     }
   };
 
@@ -172,15 +190,17 @@ export default function Stepper() {
   const renderStepCircle = (index: number) => {
     const Icon = steps[index].icon;
     const isCurrent = index === currentStep;
-    const hasStepData = hasData[steps[index].path];
+    const hasStepData = hasData[steps[index].path] || isPublished;
     const isBeforeCurrent = index < currentStep;
 
     const circleClasses = clsx(
       "z-10 flex items-center justify-center rounded-full border-2 text-sm font-semibold bg-white cursor-pointer relative outline-none",
       {
-        "h-10 w-10 border-green-600 text-green-600": (hasStepData || isBeforeCurrent) || isCurrent,
+        "h-10 w-10 border-green-600 text-green-600":
+          (hasStepData || isBeforeCurrent) || isCurrent,
         "h-8 w-8": !isCurrent,
-        "border-gray-300 text-gray-400": !hasStepData && !isBeforeCurrent && !isCurrent,
+        "border-gray-300 text-gray-400":
+          !hasStepData && !isBeforeCurrent && !isCurrent,
       }
     );
 
@@ -191,7 +211,7 @@ export default function Stepper() {
         role="button"
         tabIndex={0}
         onClick={() => handleStepNavigation(index)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={(e) => handleKeyDown(e, index)}
         aria-label={`Go to ${steps[index].label} step`}
         whileTap={{ scale: 0.9 }}
         layout
@@ -212,7 +232,7 @@ export default function Stepper() {
           layout
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          <Icon size={isCurrent ? 22 : 20} aria-hidden={true} />
+          <Icon size={isCurrent ? 22 : 20} aria-hidden="true" />
         </motion.div>
       </motion.div>
     );
@@ -220,7 +240,7 @@ export default function Stepper() {
 
   const renderStepLabel = (index: number) => {
     const isCurrent = index === currentStep;
-    const hasStepData = hasData[steps[index].path];
+    const hasStepData = hasData[steps[index].path] || isPublished;
     const isBeforeCurrent = index < currentStep;
 
     const labelClasses = clsx(
@@ -261,8 +281,8 @@ export default function Stepper() {
   };
 
   const getConnectorClass = (index: number) => {
-    const hasStepData = hasData[steps[index].path];
-    const hasNextStepData = hasData[steps[index + 1].path];
+    const hasStepData = hasData[steps[index].path] || isPublished;
+    const hasNextStepData = hasData[steps[index + 1].path] || isPublished;
     const isBeforeCurrent = index < currentStep;
 
     return clsx(
@@ -296,6 +316,7 @@ export default function Stepper() {
 
   return (
     <nav aria-label="Stepper navigation">
+      {/* Mobile View */}
       <div className="flex w-full flex-col items-center px-2 py-6 sm:hidden">
         <motion.p
           key={currentStep}
@@ -352,8 +373,12 @@ export default function Stepper() {
               className={clsx(
                 "h-2.5 w-2.5 rounded-full transition-colors duration-300",
                 {
-                  "bg-green-600": hasData[steps[index].path] || index < currentStep,
-                  "bg-gray-300": !hasData[steps[index].path] && index >= currentStep,
+                  "bg-green-600":
+                    hasData[steps[index].path] || index < currentStep || isPublished,
+                  "bg-gray-300":
+                    !hasData[steps[index].path] &&
+                    index >= currentStep &&
+                    !isPublished,
                 }
               )}
               initial={{ scale: 0.8, opacity: 0.7 }}
@@ -364,6 +389,7 @@ export default function Stepper() {
         </motion.div>
       </div>
 
+      {/* Desktop View */}
       <div className="hidden w-full flex-col items-center px-4 py-6 sm:flex">
         <motion.p
           className="mb-4 text-sm font-semibold text-gray-700"
