@@ -347,7 +347,7 @@ const GalleryFAQsAndCTA = () => {
 
     const hasLocalChanges = !areObjectsEqual(completeData as unknown as Record<string, unknown>, parsedApiResponse as unknown as Record<string, unknown>);
     const hasGlobalChanges = localStorage.getItem(HAS_CHANGES_KEY) === "true";
-    setHasChanges(hasLocalChanges || hasLocalChanges);
+    setHasChanges(hasLocalChanges || hasGlobalChanges);
 
     if (hasLocalChanges) {
       localStorage.setItem(HAS_CHANGES_KEY, "true");
@@ -355,7 +355,7 @@ const GalleryFAQsAndCTA = () => {
 
     console.log("Form data updated:", {
       isEditMode,
-      hasChanges: hasLocalChanges || hasLocalChanges,
+      hasChanges: hasLocalChanges || hasGlobalChanges,
       hasLocalChanges,
     });
   }, [formData, callCountryCode, initialized, isEditMode, welcomeData]);
@@ -611,7 +611,7 @@ const GalleryFAQsAndCTA = () => {
     }
   };
 
-  if (!formData) return <div>Loading...</div>;
+  if (!formData) return <div className="text-gray-800 dark:text-gray-100">Loading...</div>;
 
   const currentBusiness = formData.subcategories?.[0]?.businesses?.[0] || {
     businessName: "",
@@ -628,7 +628,7 @@ const GalleryFAQsAndCTA = () => {
   return (
     <div className="max-w-4xl mx-auto p-5">
       <form
-        className="bg-gray-50 rounded-lg shadow-sm p-6 relative"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 relative"
         data-testid="gallery-faqs-cta-form"
         aria-describedby="form-instructions"
       >
@@ -639,30 +639,30 @@ const GalleryFAQsAndCTA = () => {
           <button
             type="button"
             onClick={handleEdit}
-            className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 focus:ring-2 focus:ring-gray-500 p-2 rounded-full"
+            className="absolute top-4 right-4 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 focus:ring-2 focus:ring-gray-500 p-2 rounded-full"
             aria-label="Edit published business data"
           >
             <Pencil className="h-5 w-5" />
           </button>
         )}
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Gallery, FAQs, and Call to Action</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Gallery, FAQs, and Call to Action</h2>
 
         {isEditMode ? (
-          <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
+          <div className="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-md">
             Edit mode: You can modify all fields.
           </div>
         ) : isPublished ? (
-          <div className="mb-4 p-3 bg-gray-100 text-gray-800 rounded-md">
+          <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-md">
             Viewing published data. Click the pencil icon in the top-right to edit.
           </div>
         ) : (
-          <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md">
+          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md">
             Create mode: Enter details and publish.
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Gallery</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Gallery</h3>
           <div className="mb-4">
             {currentBusiness.gallery.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
@@ -671,13 +671,13 @@ const GalleryFAQsAndCTA = () => {
                     <img
                       src={image}
                       alt={`Gallery image ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-md border border-gray-200"
+                      className="w-full h-32 object-cover rounded-md border border-gray-200 dark:border-gray-600"
                     />
                     {isEditMode && (
                       <button
                         type="button"
                         onClick={() => removeArrayItem("subcategories.0.businesses.0.gallery", index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition focus:ring-2 focus:ring-red-500"
+                        className="absolute top-1 right-1 bg-red-500 dark:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition focus:ring-2 focus:ring-red-500"
                         aria-label={`Remove image ${index + 1}`}
                       >
                         <svg
@@ -698,10 +698,10 @@ const GalleryFAQsAndCTA = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 mb-4">No images uploaded yet</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">No images uploaded yet</p>
             )}
             {isEditMode && (
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 text-center">
                 <label htmlFor="image-upload" className="cursor-pointer block" aria-label="Upload image to gallery">
                   <input
                     type="file"
@@ -713,7 +713,7 @@ const GalleryFAQsAndCTA = () => {
                   <div className="flex flex-col items-center justify-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-12 w-12 text-gray-400"
+                      className="h-12 w-12 text-gray-400 dark:text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -725,10 +725,10 @@ const GalleryFAQsAndCTA = () => {
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                       Drag and drop images here, or click to browse
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Supports JPG, PNG up to 5MB
                     </p>
                   </div>
@@ -738,13 +738,13 @@ const GalleryFAQsAndCTA = () => {
           </div>
         </div>
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Call to Action</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Call to Action</h3>
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[250px]">
-            <label htmlFor="call-number-input" className="block mb-2 font-medium text-gray-700">
-  Call Number:
-</label>
+              <label htmlFor="call-number-input" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
+                Call Number:
+              </label>
               <div className="flex" role="group" aria-labelledby="call-label">
                 <label htmlFor="call-code" className="sr-only">
                   Select country code for call
@@ -753,8 +753,8 @@ const GalleryFAQsAndCTA = () => {
                   id="call-code"
                   value={callCountryCode}
                   onChange={(e) => isEditMode && setCallCountryCode(e.target.value)}
-                  className={`w-24 p-2 border border-gray-300 rounded-l-md text-sm ${
-                    isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
+                  className={`w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-l-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                    isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
                   }`}
                   aria-label="Country code"
                   disabled={!isEditMode}
@@ -777,8 +777,8 @@ const GalleryFAQsAndCTA = () => {
                       `${callCountryCode}-${e.target.value.replace(/[^0-9]/g, "")}`
                     )
                   }
-                  className={`flex-1 p-2 border border-gray-300 rounded-r-md text-sm ${
-                    isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
+                  className={`flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-r-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                    isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
                   }`}
                   aria-label="Call number"
                   readOnly={!isEditMode}
@@ -786,7 +786,7 @@ const GalleryFAQsAndCTA = () => {
               </div>
             </div>
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="book-url" className="block mb-2 font-medium text-gray-700">
+              <label htmlFor="book-url" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                 Booking URL:
               </label>
               <input
@@ -797,8 +797,8 @@ const GalleryFAQsAndCTA = () => {
                 onChange={(e) =>
                   isEditMode && updateFormData("subcategories.0.businesses.0.cta.bookUrl", e.target.value)
                 }
-                className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                  isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
+                className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                  isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
                 }`}
                 readOnly={!isEditMode}
               />
@@ -806,7 +806,7 @@ const GalleryFAQsAndCTA = () => {
           </div>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="directions-url" className="block mb-2 font-medium text-gray-700">
+              <label htmlFor="directions-url" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                 Get Directions URL:
               </label>
               <input
@@ -817,8 +817,8 @@ const GalleryFAQsAndCTA = () => {
                 onChange={(e) =>
                   isEditMode && updateFormData("subcategories.0.businesses.0.cta.getDirections", e.target.value)
                 }
-                className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                  isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
+                className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                  isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
                 }`}
                 readOnly={!isEditMode}
               />
@@ -826,13 +826,13 @@ const GalleryFAQsAndCTA = () => {
           </div>
         </div>
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">FAQs</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">FAQs</h3>
           <div className="mb-4">
             {currentBusiness.faqs.map((faq, index) => (
-              <div key={index} className="mb-4 p-3 border border-gray-200 rounded-md bg-white">
+              <div key={index} className="mb-4 p-3 border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
                 <div className="mb-3">
-                  <label htmlFor={`faq-question-${index}`} className="block mb-2 font-medium text-gray-700">
+                  <label htmlFor={`faq-question-${index}`} className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                     Question:
                   </label>
                   <input
@@ -844,14 +844,14 @@ const GalleryFAQsAndCTA = () => {
                       isEditMode &&
                       handleArrayChange("subcategories.0.businesses.0.faqs", index, "question", e.target.value)
                     }
-                    className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                      isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
+                    className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                      isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
                     }`}
                     readOnly={!isEditMode}
                   />
                 </div>
                 <div>
-                  <label htmlFor={`faq-answer-${index}`} className="block mb-2 font-medium text-gray-700">
+                  <label htmlFor={`faq-answer-${index}`} className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                     Answer:
                   </label>
                   <textarea
@@ -862,8 +862,8 @@ const GalleryFAQsAndCTA = () => {
                       isEditMode &&
                       handleArrayChange("subcategories.0.businesses.0.faqs", index, "answer", e.target.value)
                     }
-                    className={`w-full p-2 border border-gray-300 rounded-md text-sm h-24 ${
-                      isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100"
+                    className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm h-24 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                      isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
                     }`}
                     readOnly={!isEditMode}
                   />
@@ -872,7 +872,7 @@ const GalleryFAQsAndCTA = () => {
                   <button
                     type="button"
                     onClick={() => removeArrayItem("subcategories.0.businesses.0.faqs", index)}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500"
+                    className="mt-2 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 focus:ring-2 focus:ring-red-500"
                     aria-label={`Remove FAQ ${index + 1}`}
                   >
                     Remove FAQ
@@ -885,7 +885,7 @@ const GalleryFAQsAndCTA = () => {
             <button
               type="button"
               onClick={() => addArrayItem("subcategories.0.businesses.0.faqs", { question: "", answer: "" })}
-              className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 focus:ring-2 focus:ring-green-600"
+              className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 focus:ring-2 focus:ring-green-600"
               aria-label="Add new FAQ"
             >
               + Add FAQ
@@ -895,7 +895,7 @@ const GalleryFAQsAndCTA = () => {
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
-            className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-gray-500"
+            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-gray-500"
             onClick={() => router.push("/services")}
             type="button"
           >
@@ -903,7 +903,7 @@ const GalleryFAQsAndCTA = () => {
           </Button>
           {isEditMode && (
             <Button
-              className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:ring-2 focus:ring-blue-500"
               onClick={handlePublishOrUpdate}
               type="button"
               disabled={isPublishing || !hasChanges}

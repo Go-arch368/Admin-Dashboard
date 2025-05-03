@@ -74,7 +74,7 @@ export default function BusinessInformation() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    localStorage.setItem("hasChanges", "true"); // Mark change
+    localStorage.setItem("hasChanges", "true");
   };
 
   const isFormValid = () => formData.businessName.trim() !== "" && formData.description.trim() !== "";
@@ -97,7 +97,7 @@ export default function BusinessInformation() {
       ],
     };
     localStorage.setItem("businessFormData", JSON.stringify(dataToSave));
-    localStorage.setItem("hasChanges", "true"); // Mark change
+    localStorage.setItem("hasChanges", "true");
     router.push("/location");
   };
 
@@ -106,7 +106,7 @@ export default function BusinessInformation() {
       setFormData(initialData);
     } else {
       localStorage.setItem("isEditModeActive", "true");
-      localStorage.setItem("hasChanges", "true"); // Set changes on edit
+      localStorage.setItem("hasChanges", "true");
       console.log("Edit mode enabled via BusinessInformation pencil");
     }
     setIsEditing(!isEditing);
@@ -116,13 +116,13 @@ export default function BusinessInformation() {
 
   return (
     <main className="max-w-4xl mx-auto p-5">
-      <div className="bg-gray-50 rounded-lg shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Business Information</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Business Information</h2>
           {isReadOnly && (
             <button
               onClick={toggleEdit}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
               aria-label="Edit Business Information"
             >
               <Pencil className="w-5 h-5" />
@@ -131,20 +131,20 @@ export default function BusinessInformation() {
         </div>
 
         {isReadOnly ? (
-          <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md">
+          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md">
             Viewing saved business information.
           </div>
         ) : (
-          <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-md">
+          <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-md">
             {hasExistingData ? "Editing business information." : "Please enter your business information."}
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Basic Information</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Basic Information</h3>
 
           <div className="mb-4">
-            <label htmlFor="businessName" className="block mb-2 font-medium text-gray-700">
+            <label htmlFor="businessName" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               Business Name:
             </label>
             <input
@@ -154,13 +154,13 @@ export default function BusinessInformation() {
               value={formData.businessName}
               onChange={handleInputChange}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${isReadOnly ? "bg-gray-100" : "border border-gray-300"} rounded-md focus:ring-2 focus:ring-blue-500`}
+              className={`w-full p-2 ${isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"} rounded-md focus:ring-2 focus:ring-blue-500`}
               placeholder="Enter your business name"
             />
           </div>
 
           <div>
-            <label htmlFor="description" className="block mb-2 font-medium text-gray-700">
+            <label htmlFor="description" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               Description:
             </label>
             <textarea
@@ -169,7 +169,7 @@ export default function BusinessInformation() {
               value={formData.description}
               onChange={handleInputChange}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${isReadOnly ? "bg-gray-100" : "border border-gray-300"} rounded-md h-24 focus:ring-2 focus:ring-blue-500`}
+              className={`w-full p-2 ${isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"} rounded-md h-24 focus:ring-2 focus:ring-blue-500`}
               placeholder="Describe your business"
             />
           </div>
@@ -177,7 +177,7 @@ export default function BusinessInformation() {
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
-            className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500"
+            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
             onClick={() => router.push("/welcome")}
           >
             Back
@@ -185,7 +185,7 @@ export default function BusinessInformation() {
 
           {isEditing && hasExistingData && (
             <Button
-              className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
               onClick={toggleEdit}
             >
               Cancel
@@ -193,7 +193,7 @@ export default function BusinessInformation() {
           )}
 
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             color="primary"
             onClick={handleNext}
             disabled={!isFormValid()}

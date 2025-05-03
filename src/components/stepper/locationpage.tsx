@@ -46,7 +46,6 @@ const Location = () => {
     if (!existingData && apiResponse && apiResponse !== "{}" && apiResponse !== '""') {
       try {
         const parsedApiResponse = JSON.parse(apiResponse);
-        // Only use apiResponse if it has publish: true
         if (parsedApiResponse.publish === true) {
           const locationData =
             parsedApiResponse?.location?.subcategories?.[0]?.businesses?.[0]?.location ||
@@ -85,7 +84,6 @@ const Location = () => {
 
   const isFormValid = () => {
     const { address, city, state, postalCode } = formData;
-    // Basic validation: all fields required, postal code must be 5-10 digits
     const postalCodeRegex = /^\d{5,10}$/;
     return (
       address.trim() !== "" &&
@@ -166,13 +164,13 @@ const Location = () => {
 
   return (
     <main className="max-w-4xl mx-auto p-5">
-      <div className="bg-gray-50 rounded-lg shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Business Location</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Business Location</h2>
           {isReadOnly && (
             <button
               onClick={toggleEdit}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
               aria-label="Edit Location"
             >
               <Pencil className="w-5 h-5" />
@@ -181,18 +179,18 @@ const Location = () => {
         </div>
 
         {isReadOnly ? (
-          <div className="mb-4 p-3 bg-gray-100 text-gray-800 rounded-md">
+          <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-md">
             Viewing saved location information.
           </div>
         ) : (
-          <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-md">
+          <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-md">
             {hasExistingData ? "Editing location information." : "Please enter your location information."}
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
           <div className="mb-4">
-            <label htmlFor="address" className="block mb-2 font-medium text-gray-700">
+            <label htmlFor="address" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               Address:
             </label>
             <input
@@ -203,14 +201,14 @@ const Location = () => {
               onChange={handleInputChange}
               readOnly={isReadOnly}
               className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100" : "border border-gray-300"
+                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
               } rounded-md focus:ring-2 focus:ring-gray-500`}
               placeholder="Enter your business address"
             />
           </div>
 
           <div className="mb-4">
-            <label htmlFor="city" className="block mb-2 font-medium text-gray-700">
+            <label htmlFor="city" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               City:
             </label>
             <input
@@ -221,14 +219,14 @@ const Location = () => {
               onChange={handleInputChange}
               readOnly={isReadOnly}
               className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100" : "border border-gray-300"
+                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
               } rounded-md focus:ring-2 focus:ring-gray-500`}
               placeholder="Enter your city"
             />
           </div>
 
           <div className="mb-4">
-            <label htmlFor="state" className="block mb-2 font-medium text-gray-700">
+            <label htmlFor="state" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               State:
             </label>
             <input
@@ -239,14 +237,14 @@ const Location = () => {
               onChange={handleInputChange}
               readOnly={isReadOnly}
               className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100" : "border border-gray-300"
+                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
               } rounded-md focus:ring-2 focus:ring-gray-500`}
               placeholder="Enter your state"
             />
           </div>
 
           <div className="mb-4">
-            <label htmlFor="postalCode" className="block mb-2 font-medium text-gray-700">
+            <label htmlFor="postalCode" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               Postal Code:
             </label>
             <input
@@ -257,7 +255,7 @@ const Location = () => {
               onChange={handleInputChange}
               readOnly={isReadOnly}
               className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100" : "border border-gray-300"
+                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
               } rounded-md focus:ring-2 focus:ring-gray-500`}
               placeholder="Enter your postal code"
             />
@@ -266,7 +264,7 @@ const Location = () => {
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
-            className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-gray-500"
+            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-gray-500"
             onClick={() => router.push("/business-info")}
           >
             Back
@@ -274,7 +272,7 @@ const Location = () => {
 
           {isEditing && hasExistingData && (
             <Button
-              className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-gray-500"
+              className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-gray-500"
               onClick={toggleEdit}
             >
               Cancel
@@ -282,7 +280,7 @@ const Location = () => {
           )}
 
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             color="primary"
             onClick={handleNext}
             disabled={!isFormValid()}

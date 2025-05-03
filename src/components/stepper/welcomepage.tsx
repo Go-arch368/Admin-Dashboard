@@ -39,32 +39,26 @@ export default function Welcome() {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    // Load category data from fallbackData
     setCategoryData(fallbackData as CategoryData[]);
 
-    // Load draft data from welcomeFormData
     const storedFormData = getStoredData<WelcomeData>("welcomeFormData", {
       category: "",
       subcategory: "",
     });
 
-    // Load published data from apiResponse
     const storedApiResponse = getStoredData<ApiResponse>("apiResponse", {});
 
     if (storedApiResponse.publish && storedApiResponse.welcome) {
-      // Published data exists
       setSelectedCategory(storedApiResponse.welcome.category || "");
       setSelectedSubcategory(storedApiResponse.welcome.subcategory || "");
       setIsReadOnly(true);
       setIsEditing(false);
     } else if (storedFormData.category && storedFormData.subcategory) {
-      // Draft data exists
       setSelectedCategory(storedFormData.category);
       setSelectedSubcategory(storedFormData.subcategory);
       setIsReadOnly(false);
       setIsEditing(true);
     } else {
-      // No data, start fresh
       setSelectedCategory("");
       setSelectedSubcategory("");
       setIsReadOnly(false);
@@ -123,13 +117,13 @@ export default function Welcome() {
 
   return (
     <div className="max-w-4xl mx-auto p-5">
-      <div className="bg-gray-50 rounded-lg shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Welcome</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Welcome</h2>
           {isReadOnly && (
             <button
               onClick={handleEdit}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
               aria-label="Edit Category"
             >
               <Pencil className="w-5 h-5" />
@@ -137,25 +131,24 @@ export default function Welcome() {
           )}
         </div>
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Business Category</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Business Category</h3>
           
           {isReadOnly ? (
             <div className="space-y-4">
               <div>
-              <label htmlFor="category" className="block mb-1 font-medium text-gray-700">
-  Category:
-</label>
-                <div className="p-2 bg-gray-100 rounded-md">
+                <label htmlFor="category" className="block mb-1 font-medium text-gray-700 dark:text-gray-200">
+                  Category:
+                </label>
+                <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-800 dark:text-gray-100">
                   {selectedCategory || "Not selected"}
                 </div>
               </div>
               <div>
-               
-<label htmlFor="subcategory" className="block mb-1 font-medium text-gray-700">
-  Subcategory:
-</label>
-                <div className="p-2 bg-gray-100 rounded-md">
+                <label htmlFor="subcategory" className="block mb-1 font-medium text-gray-700 dark:text-gray-200">
+                  Subcategory:
+                </label>
+                <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-800 dark:text-gray-100">
                   {selectedSubcategory || "Not selected"}
                 </div>
               </div>
@@ -163,13 +156,13 @@ export default function Welcome() {
           ) : (
             <div className="flex flex-wrap gap-4 mb-4">
               <div className="flex-1 min-w-[250px]">
-                <label className="block mb-2 font-medium text-gray-700">
+                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                   Category:
                   <select
                     id="category-select"
                     value={selectedCategory}
                     onChange={handleCategoryChange}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
                     required
                     aria-describedby="category-instructions"
                   >
@@ -186,13 +179,13 @@ export default function Welcome() {
                 </span>
               </div>
               <div className="flex-1 min-w-[250px]">
-                <label className="block mb-2 font-medium text-gray-700">
+                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                   Subcategory:
                   <select
                     id="subcategory-select"
                     value={selectedSubcategory}
                     onChange={handleSubcategoryChange}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
                     required
                     disabled={!selectedCategory}
                     aria-describedby="subcategory-instructions"
@@ -215,7 +208,7 @@ export default function Welcome() {
 
         <div className="flex justify-end">
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             color="primary"
             onClick={handleNext}
             type="button"

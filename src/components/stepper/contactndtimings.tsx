@@ -65,7 +65,6 @@ const ContactAndTimings = () => {
       console.error("Error parsing apiResponse:", error);
     }
 
-    // Only set isReadOnly if apiResponse indicates a published state
     const hasPublishedData =
       parsedApiResponse &&
       apiResponse !== "{}" &&
@@ -147,7 +146,6 @@ const ContactAndTimings = () => {
 
   const isFormValid = () => {
     const { contact } = formData;
-    // Require at least one contact method and valid email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return (
       (contact.phone.trim() !== "" || contact.email.trim() !== "" || contact.website.trim() !== "") &&
@@ -290,13 +288,13 @@ const ContactAndTimings = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-5">
-      <form className="bg-gray-50 rounded-lg shadow-sm p-6 relative">
+      <form className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 relative">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Contact & Timings</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Contact & Timings</h2>
           {isReadOnly && (
             <button
               onClick={toggleEdit}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
               aria-label="Edit Contact and Timings"
             >
               <Pencil className="w-5 h-5" />
@@ -305,28 +303,28 @@ const ContactAndTimings = () => {
         </div>
 
         {isReadOnly ? (
-          <div className="mb-4 p-3 bg-gray-100 text-gray-800 rounded-md">
+          <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-md">
             Viewing saved contact and timings information.
           </div>
         ) : (
-          <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-md">
+          <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-md">
             {isReadOnly ? "Editing contact and timings." : "Please enter your contact and timings information."}
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Contact Information</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Contact Information</h3>
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="contact-phone" className="block mb-2 font-medium text-gray-700">
+              <label htmlFor="contact-phone" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                 Phone Number:
               </label>
               <div className="flex">
                 <select
                   value={phoneCountryCode}
                   onChange={(e) => !isReadOnly && setPhoneCountryCode(e.target.value)}
-                  className={`w-24 p-2 border border-gray-300 rounded-l-md text-sm ${
-                    isReadOnly ? "bg-gray-100" : ""
+                  className={`w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-l-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                    isReadOnly ? "bg-gray-100 dark:bg-gray-700" : ""
                   } focus:ring-2 focus:ring-gray-500`}
                   disabled={isReadOnly}
                 >
@@ -343,15 +341,15 @@ const ContactAndTimings = () => {
                   value={formData.contact.phone}
                   onChange={handleInputChange}
                   readOnly={isReadOnly}
-                  className={`flex-1 p-2 border border-gray-300 rounded-r-md text-sm ${
-                    isReadOnly ? "bg-gray-100" : ""
+                  className={`flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-r-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                    isReadOnly ? "bg-gray-100 dark:bg-gray-700" : ""
                   } focus:ring-2 focus:ring-gray-500`}
                   placeholder="Enter phone number"
                 />
               </div>
             </div>
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="contact-email" className="block mb-2 font-medium text-gray-700">
+              <label htmlFor="contact-email" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                 Email:
               </label>
               <input
@@ -361,8 +359,8 @@ const ContactAndTimings = () => {
                 value={formData.contact.email}
                 onChange={handleInputChange}
                 readOnly={isReadOnly}
-                className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                  isReadOnly ? "bg-gray-100" : ""
+                className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                  isReadOnly ? "bg-gray-100 dark:bg-gray-700" : ""
                 } focus:ring-2 focus:ring-gray-500`}
                 placeholder="Enter email"
               />
@@ -370,7 +368,7 @@ const ContactAndTimings = () => {
           </div>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[250px]">
-              <label htmlFor="contact-website" className="block mb-2 font-medium text-gray-700">
+              <label htmlFor="contact-website" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
                 Website:
               </label>
               <input
@@ -380,8 +378,8 @@ const ContactAndTimings = () => {
                 value={formData.contact.website}
                 onChange={handleInputChange}
                 readOnly={isReadOnly}
-                className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                  isReadOnly ? "bg-gray-100" : ""
+                className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                  isReadOnly ? "bg-gray-100 dark:bg-gray-700" : ""
                 } focus:ring-2 focus:ring-gray-500`}
                 placeholder="Enter website URL"
               />
@@ -389,14 +387,14 @@ const ContactAndTimings = () => {
           </div>
         </div>
 
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Business Hours</h3>
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Business Hours</h3>
           {Object.keys(formData.timings).map((day) => (
             <div key={day} className="flex items-center gap-4 mb-4">
-              <div className="w-24 capitalize">{day}:</div>
+              <div className="w-24 capitalize text-gray-800 dark:text-gray-100">{day}:</div>
               <div className="flex-1">
                 {closedDays[day as keyof typeof closedDays] ? (
-                  <span className="text-gray-500">Closed</span>
+                  <span className="text-gray-500 dark:text-gray-400">Closed</span>
                 ) : (
                   <div className="flex gap-2">
                     <input
@@ -409,11 +407,11 @@ const ContactAndTimings = () => {
                       }
                       onChange={(e) => handleTimeChange(day, "open", e.target.value)}
                       readOnly={isReadOnly}
-                      className={`w-32 p-2 border border-gray-300 rounded-md text-sm ${
-                        isReadOnly ? "bg-gray-100" : ""
+                      className={`w-32 p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                        isReadOnly ? "bg-gray-100 dark:bg-gray-700" : ""
                       } focus:ring-2 focus:ring-gray-500`}
                     />
-                    <span>-</span>
+                    <span className="text-gray-800 dark:text-gray-100">-</span>
                     <input
                       type="time"
                       value={
@@ -424,20 +422,20 @@ const ContactAndTimings = () => {
                       }
                       onChange={(e) => handleTimeChange(day, "close", e.target.value)}
                       readOnly={isReadOnly}
-                      className={`w-32 p-2 border border-gray-300 rounded-md text-sm ${
-                        isReadOnly ? "bg-gray-100" : ""
+                      className={`w-32 p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
+                        isReadOnly ? "bg-gray-100 dark:bg-gray-700" : ""
                       } focus:ring-2 focus:ring-gray-500`}
                     />
                   </div>
                 )}
               </div>
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                 <input
                   type="checkbox"
                   checked={closedDays[day as keyof typeof closedDays]}
                   onChange={() => handleClosedChange(day)}
                   disabled={isReadOnly}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
                 />
                 Closed
               </label>
@@ -447,13 +445,13 @@ const ContactAndTimings = () => {
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
-            className="w-full sm:w-auto border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-gray-500"
+            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-gray-500"
             onClick={() => router.push("/location")}
           >
             Back
           </Button>
           <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700"
+            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             color="primary"
             onClick={handleNext}
             disabled={!isFormValid()}
