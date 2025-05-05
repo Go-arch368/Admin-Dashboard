@@ -6,8 +6,8 @@ export default function Welcome(){
   return(
     <>
     <Layout>
-      <ModeToggle/>
-      <StepperComponents/>
+      {/* <ModeToggle/>
+      <StepperComponents/> */}
       <WelcomePage/>
     </Layout>
     </>

@@ -7,8 +7,8 @@ import WelcomePage from "@/components/stepper/welcomepage";
 
 const Page = () => (
   <Layout>
-     <ModeToggle/>
-         <StepperComponents/>
+     {/* <ModeToggle/>
+         <StepperComponents/> */}
          <WelcomePage/>
   </Layout>
 );

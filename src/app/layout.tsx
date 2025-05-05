@@ -2,7 +2,7 @@ import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserBut
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
-// import { DarkModeSwitch } from "@/components/navbar/darkmodeswitch";
+import ClientLayout from './client-layout';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,10 +45,9 @@ export default function RootLayout({
               </SignedOut>
               <SignedIn>
                 <UserButton />
-                {/* <DarkModeSwitch /> */}
               </SignedIn>
             </header>
-            {children}
+            <ClientLayout>{children}</ClientLayout>
           </ThemeProvider>
         </body>
       </html>

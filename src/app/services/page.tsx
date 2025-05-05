@@ -6,8 +6,8 @@ export default function Services(){
   return(
     <>
     <Layout>
-      <ModeToggle/>
-      <StepperComponents/>
+      {/* <ModeToggle/>
+      <StepperComponents/> */}
       <ServicesPage/>
     </Layout>
     </>

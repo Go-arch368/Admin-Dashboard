@@ -6,8 +6,8 @@ export default function Location(){
   return(
     <>
     <Layout>
-      <ModeToggle/>
-      <StepperComponents/>
+      {/* <ModeToggle/>
+      <StepperComponents/> */}
       <LocationPage/>
     </Layout>
     </>

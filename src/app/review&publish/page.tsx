@@ -6,8 +6,8 @@ export default function ReviewndPublish(){
   return(
     <>
     <Layout>
-      <ModeToggle/>
-      <StepperComponents/>
+      {/* <ModeToggle/>
+      <StepperComponents/> */}
       <ReviewAndPublishPage/>
     </Layout>
     </>

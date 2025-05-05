@@ -6,8 +6,8 @@ export default function Business(){
   return(
     <>
     <Layout>
-      <ModeToggle/>
-      <StepperComponents/>
+      {/* <ModeToggle/>
+      <StepperComponents/> */}
       <BusinessInformation/>
     </Layout>
     </>

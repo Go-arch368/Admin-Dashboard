@@ -6,8 +6,8 @@ export default function ContactndTimings(){
   return(
     <>
     <Layout>
-      <ModeToggle/>
-      <StepperComponents/>
+      {/* <ModeToggle/>
+      <StepperComponents/> */}
       <ContactAndTimings/>
     </Layout>
     </>
