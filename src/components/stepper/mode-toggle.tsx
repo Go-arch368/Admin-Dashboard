@@ -19,7 +19,6 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
         if (!apiResponse || apiResponse === '""') return false;
 
         const parsed = JSON.parse(apiResponse);
-        // Only consider apiResponse valid if it has isPublished: true
         return (
           parsed &&
           typeof parsed === 'object' &&
@@ -41,18 +40,17 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
     if (forceCreateMode === 'true') {
       localStorage.removeItem('forceCreateMode');
     }
-
-    console.log('Data check:', {
-      hasLocalStorageData: dataExists,
-      currentMode: mode,
-      forceCreateMode: forceCreateMode,
-    });
   }, []);
 
   const handleCreateClick = () => {
     setIsCreating(true);
+    // Save current theme before clearing
+    const currentTheme = localStorage.getItem('theme');
+    // Clear storage but preserve theme
     localStorage.clear();
-    localStorage.removeItem('apiResponse');
+    if (currentTheme) {
+      localStorage.setItem('theme', currentTheme);
+    }
     localStorage.setItem('forceCreateMode', 'true');
     setMode('create');
     setHasData(false);

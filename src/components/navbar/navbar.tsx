@@ -6,8 +6,7 @@ import React from "react";
 
 import { useSidebarContext } from "../layout/layout-context";
 import { Box } from "../styles/box";
-
-import DarkModeSwitch from "./darkmodeswitch";
+import { DarkModeSwitch } from "./darkmodeswitch";
 import FullScreenToggle from "./FullScreenToggle";
 import LocationModal from "./LocationModal";
 import { UserDropdown } from "./user-dropdown";
