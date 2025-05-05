@@ -64,7 +64,7 @@ export const Layout = ({ children }: Props) => {
 
         <main
   className={`transition-all duration-300 ease-in-out ${
-    sidebarOpen ? "ml-44" : "ml-20"
+    sidebarOpen ? "ml-44" : "ml-10"
   } flex-1 overflow-auto -mt-3`}  // Negative margin to lift content up
 >
   {children}
@@ -72,9 +72,9 @@ export const Layout = ({ children }: Props) => {
         </div>
 
         {/* Footer */}
-        <div className="relative z-50">
+        {/* <div className="relative z-50">
           <Footer />
-        </div>
+        </div> */}
       </div>
     </SidebarContext.Provider>
   );

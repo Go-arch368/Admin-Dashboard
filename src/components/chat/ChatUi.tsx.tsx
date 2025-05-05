@@ -38,7 +38,7 @@ export default function ChatUI() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   return (
-    <div className="flex h-[calc(100vh-1rem)] border border-gray-300 bg-white text-black transition-colors dark:border-gray-700 dark:bg-zinc-900 dark:text-white">
+    <div className="flex h-[calc(100vh-1rem)] border border-gray-300 bg-white text-black transition-colors dark:border-gray-700 dark:bg-zinc-900 dark:text-white mt-4">
       <ContactList
         contacts={sampleContacts}
         selectedContact={selectedContact}

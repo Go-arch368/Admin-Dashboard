@@ -234,9 +234,7 @@ export default function Stepper() {
       scale: 1,
       y: 0,
       transition: {
-        type: "spring",
-        stiffness: 200,
-        damping: 15,
+        type: "easeInOut",
         duration: 0.3,
       },
     },
@@ -271,7 +269,7 @@ export default function Stepper() {
         aria-label={`Go to ${steps[index].label} step`}
         whileTap={{ scale: 0.9 }}
         layout
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        transition={{ type: "easeInOut", duration: 0.2 }}
       >
         <AnimatePresence>
           {isCurrent && (
@@ -280,13 +278,13 @@ export default function Stepper() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15, duration: 0.2 }}
+              transition={{ type: "easeInOut", duration: 0.2 }}
             />
           )}
         </AnimatePresence>
         <motion.div
           layout
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          transition={{ type: "easeInOut", duration: 0.2 }}
         >
           <Icon width={isCurrent ? 22 : 20} height={isCurrent ? 22 : 20} aria-hidden="true" />
         </motion.div>
@@ -384,7 +382,7 @@ export default function Stepper() {
           Step {currentStep + 1} of {steps.length}
         </motion.p>
 
-        <div className="relative mb-3 flex w-full max-w-xs items-center justify-between">
+        <div className="relative mb-3 flex w-full max-w-xs items-center justify-start ml-auto mr-4">
           <AnimatePresence mode="popLayout">
             {visibleSteps.map((step, index) => {
               const globalIndex = steps.findIndex((s) => s.path === step.path);
@@ -402,7 +400,7 @@ export default function Stepper() {
                   layoutId={`mobile-step-${globalIndex}`}
                   className="relative flex min-w-[80px] flex-1 flex-col items-center"
                   layout
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  transition={{ type: "easeInOut", duration: 0.2 }}
                 >
                   {globalIndex < steps.length - 1 && !isLastVisible && (
                     <motion.div
@@ -457,7 +455,7 @@ export default function Stepper() {
         </motion.p>
 
         <motion.div
-          className="relative flex w-full max-w-5xl items-center justify-between"
+          className="relative flex w-full max-w-5xl items-center justify-start ml-auto mr-4 lg:mr-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
