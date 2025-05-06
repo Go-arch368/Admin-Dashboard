@@ -12,7 +12,7 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const excludeStepperPaths = ['/dashboard', '/chats'];
+  const excludeStepperPaths = ['/dashboard', '/chats',"/crud"];
   const showStepper = !excludeStepperPaths.includes(pathname);
 
   useEffect(() => {

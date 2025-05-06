@@ -1,5 +1,5 @@
 "use client";
-import { MessageCircle, LayoutDashboard, TableOfContents } from "lucide-react";
+import { MessageCircle, LayoutDashboard, TableOfContents  ,TriangleRight} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import React from "react";
@@ -53,6 +53,12 @@ export const SidebarWrapper = () => {
               icon={<MessageCircle className={iconShiftClass} />}
               isActive={pathname === "/chats"}
               href="/chats"
+            />
+             <SidebarItem
+              title={collapsed ? "" : "Crud"}
+              icon={<TriangleRight className={iconShiftClass} />}
+              isActive={pathname === "/crud"}
+              href="/crud"
             />
           </div>
         </div>
