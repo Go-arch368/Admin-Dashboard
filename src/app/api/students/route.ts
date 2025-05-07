@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db'; // Your existing query function
+import { query } from '@/lib/db'; 
 
-// GET: Fetch all students
+
 export async function GET() {
   try {
     const results = await query('SELECT * FROM students');
