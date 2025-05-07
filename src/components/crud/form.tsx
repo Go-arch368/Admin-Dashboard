@@ -158,7 +158,7 @@ export default function CrudForm() {
       <div className="container mx-auto my-6 px-6">
         <Toaster position="top-right" />
         <h3 className="text-3xl font-extrabold text-center text-gray-900 dark:text-white mb-10">
-          Student Management Dashboard
+          Student Management 
         </h3>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Form Section */}
