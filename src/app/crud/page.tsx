@@ -1,3 +1,4 @@
+"use client"
 import CrudForm from "@/components/crud/form"
 export default function CrudPage(){
     return(
