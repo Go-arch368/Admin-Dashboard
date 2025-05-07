@@ -48,12 +48,12 @@ export const SidebarWrapper = () => {
               isActive={pathname === "/content"}
               href="/content"
             />
-            <SidebarItem
+            {/* <SidebarItem
               title={collapsed ? "" : "Chats"}
               icon={<MessageCircle className={iconShiftClass} />}
               isActive={pathname === "/chats"}
               href="/chats"
-            />
+            /> */}
              <SidebarItem
               title={collapsed ? "" : "Crud"}
               icon={<TriangleRight className={iconShiftClass} />}

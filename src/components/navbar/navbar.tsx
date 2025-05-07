@@ -52,7 +52,7 @@ export const NavbarWrapper = ({ children }: Props) => {
             <span className="font-bold text-primary">Admin Dashboard</span>
           </li>
           <li>
-           <LocationModal/>
+           {/* <LocationModal/> */}
           </li>
         </NavbarContent>
 
