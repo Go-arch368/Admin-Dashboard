@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Define a custom error type for database errors
+interface DatabaseError extends Error {
+  code?: string;
+  errno?: number;
+  sqlMessage?: string;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,16 +25,16 @@ export async function GET(request: NextRequest) {
     
     const results = await query(sql, params);
     return NextResponse.json(results, { status: 200 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching subcategories:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch subcategories' },
+      { error: 'Failed to fetch subcategories', details: errorMessage },
       { status: 500 }
     );
   }
 }
 
-// 2. CREATE NEW SUBCATEGORY
 export async function POST(request: NextRequest) {
   try {
     const { 
@@ -40,7 +46,6 @@ export async function POST(request: NextRequest) {
       is_active
     } = await request.json();
 
-    // Validate required fields
     if (!category_id || !name || !slug) {
       return NextResponse.json(
         { error: 'Missing required fields (category_id, name, slug)' },
@@ -71,19 +76,19 @@ export async function POST(request: NextRequest) {
       { message: 'Subcategory created successfully' },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating subcategory:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { 
         error: 'Failed to create subcategory',
-        details: error.message
+        details: errorMessage
       },
       { status: 500 }
     );
   }
 }
 
-// 3. UPDATE SUBCATEGORY
 export async function PUT(request: NextRequest) {
   try {
     const {
@@ -127,19 +132,25 @@ export async function PUT(request: NextRequest) {
       { message: 'Subcategory updated successfully' },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating subcategory:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isForeignKeyError = error instanceof Error && 'code' in error 
+      ? (error as DatabaseError).code === 'ER_ROW_IS_REFERENCED_2'
+      : false;
+    
     return NextResponse.json(
       { 
         error: 'Failed to update subcategory',
-        details: error.message
+        details: isForeignKeyError
+          ? 'Cannot update: Subcategory is referenced elsewhere'
+          : errorMessage
       },
       { status: 500 }
     );
   }
 }
 
-// 4. DELETE SUBCATEGORY
 export async function DELETE(request: NextRequest) {
   try {
     const { subcategory_id } = await request.json();
@@ -160,14 +171,19 @@ export async function DELETE(request: NextRequest) {
       { message: 'Subcategory deleted successfully' },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting subcategory:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isForeignKeyError = error instanceof Error && 'code' in error 
+      ? (error as DatabaseError).code === 'ER_ROW_IS_REFERENCED_2'
+      : false;
+    
     return NextResponse.json(
       { 
         error: 'Failed to delete subcategory',
-        details: error.message.includes('foreign key constraint') 
-               ? 'Cannot delete: Subcategory is in use' 
-               : error.message
+        details: isForeignKeyError
+          ? 'Cannot delete: Subcategory is in use' 
+          : errorMessage
       },
       { status: 500 }
     );
