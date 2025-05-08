@@ -350,7 +350,7 @@ export default function Stepper() {
 
   if (!isMounted) {
     return (
-      <div className="w-full py-6">
+      <div className="w-full py-4">
         <div className="mx-auto max-w-4xl animate-pulse">
           <div className="h-8 w-1/3 rounded bg-gray-200 mb-4"></div>
           <div className="flex justify-between">
@@ -371,7 +371,7 @@ export default function Stepper() {
   return (
     <nav aria-label="Stepper navigation">
       {/* Mobile View */}
-      <div className="flex w-full flex-col items-center px-2 py-6 sm:hidden">
+      <div className="flex w-full flex-col items-center py-4 sm:hidden">
         <motion.p
           key={currentStep}
           animate={{ opacity: 1, y: 0 }}
@@ -382,7 +382,7 @@ export default function Stepper() {
           Step {currentStep + 1} of {steps.length}
         </motion.p>
 
-        <div className="relative mb-3 flex w-full max-w-xs items-center justify-start ml-auto mr-4">
+        <div className="relative mb-3 flex w-full max-w-xs items-center justify-start">
           <AnimatePresence mode="popLayout">
             {visibleSteps.map((step, index) => {
               const globalIndex = steps.findIndex((s) => s.path === step.path);
@@ -444,7 +444,7 @@ export default function Stepper() {
       </div>
 
       {/* Desktop View */}
-      <div className="hidden w-full flex-col items-center px-4 py-6 sm:flex">
+      <div className="hidden w-full flex-col items-center py-4 sm:flex">
         <motion.p
           className="mb-4 text-sm font-semibold text-gray-700"
           initial={{ opacity: 0 }}
@@ -455,7 +455,7 @@ export default function Stepper() {
         </motion.p>
 
         <motion.div
-          className="relative flex w-full max-w-5xl items-center justify-start ml-auto mr-4 lg:mr-12"
+          className="relative flex w-full max-w-5xl items-center justify-start"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}

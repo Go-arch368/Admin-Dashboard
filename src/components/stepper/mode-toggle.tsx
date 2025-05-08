@@ -44,9 +44,7 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
 
   const handleCreateClick = () => {
     setIsCreating(true);
-    // Save current theme before clearing
     const currentTheme = localStorage.getItem('theme');
-    // Clear storage but preserve theme
     localStorage.clear();
     if (currentTheme) {
       localStorage.setItem('theme', currentTheme);
@@ -61,7 +59,7 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
   };
 
   return (
-    <div className="flex gap-2 ml-10 ">
+    <div className="flex gap-2 ml-4">
       <Button
         onClick={handleCreateClick}
         isDisabled={isCreating}
@@ -70,7 +68,7 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
         variant={mode === 'create' ? 'solid' : 'bordered'}
         size="sm"
         radius="full"
-        className="mt-3 ml-5"
+        className="mt-3"
       >
         {isCreating ? 'Creating...' : 'Create'}
       </Button>

@@ -1,6 +1,6 @@
 "use client";
 import { Navbar, NavbarContent } from "@nextui-org/react";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import React from "react";
 
@@ -8,7 +8,6 @@ import { useSidebarContext } from "../layout/layout-context";
 import { Box } from "../styles/box";
 import { DarkModeSwitch } from "./darkmodeswitch";
 import FullScreenToggle from "./FullScreenToggle";
-import LocationModal from "./LocationModal";
 import { UserDropdown } from "./user-dropdown";
 
 interface Props {
@@ -23,6 +22,10 @@ export const NavbarWrapper = ({ children }: Props) => {
   const baseBtnClass =
     "inline-flex h-9 w-10 items-center justify-center rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-800";
 
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+
   return (
     <Box
       className={`relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden ${
@@ -31,28 +34,24 @@ export const NavbarWrapper = ({ children }: Props) => {
     >
       <Navbar
         isBordered
-        className={`relative w-full py-2 shadow-lg ${
+        className={`relative w-full py-2 shadow-lg h-14 ${
           isDark
             ? "border-b border-gray-700 bg-black text-white"
             : "border-b border-gray-300 bg-white text-black"
         }`}
-        isMenuOpen={false}
       >
         <NavbarContent justify="start">
           <li>
             <button
               className={baseBtnClass}
-              onClick={setCollapsed}
+              onClick={toggleSidebar}
               aria-label="Toggle Sidebar"
             >
-              {collapsed ? <Menu /> : <Menu />}
+              {collapsed ? <Menu /> : <X />}
             </button>
           </li>
           <li>
             <span className="font-bold text-primary">Admin Dashboard</span>
-          </li>
-          <li>
-           {/* <LocationModal/> */}
           </li>
         </NavbarContent>
 
@@ -78,7 +77,7 @@ export const NavbarWrapper = ({ children }: Props) => {
           <UserDropdown />
         </div>
       </Navbar>
-      {children}
+      <div className="flex-1 overflow-y-auto pt-14 md:pt-0 px-4">{children}</div>
     </Box>
   );
 };
