@@ -1,11 +1,9 @@
 "use client";
 import React from "react";
-
 import { Footer } from "../Footer";
 import { useLockedBody } from "../hooks/useBodyLock";
 import { NavbarWrapper } from "../navbar/navbar";
 import { SidebarWrapper } from "../sidebar/SideBar";
-
 import { SidebarContext } from "./layout-context";
 
 interface Props {
@@ -13,12 +11,12 @@ interface Props {
 }
 
 export const Layout = ({ children }: Props) => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const [, setLocked] = useLockedBody(false);
   const [mounted, setMounted] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(true);
+  const [, setLocked] = useLockedBody(false);
 
   const handleToggleSidebar = () => {
-    setSidebarOpen((prev) => {
+    setCollapsed((prev) => {
       const next = !prev;
 
       if (window.innerWidth < 768) {
@@ -40,38 +38,28 @@ export const Layout = ({ children }: Props) => {
   return (
     <SidebarContext.Provider
       value={{
-        collapsed: !sidebarOpen,
+        collapsed,
         setCollapsed: handleToggleSidebar,
       }}
     >
       <div className="flex min-h-screen w-full flex-col">
-        {/* Fixed Navbar */}
         <div className="fixed left-0 top-0 z-50 w-full">
           <NavbarWrapper>
             <div></div>
           </NavbarWrapper>
         </div>
-
-        {/* Main content and sidebar */}
         <div className="flex flex-1">
-          <div
-            className={`fixed left-0 z-40 transition-all duration-300 ease-in-out ${
-              sidebarOpen ? "w-50" : "w-20"
-            }`}
-          >
+          <div>
             <SidebarWrapper />
           </div>
-
-        <main
-  className={`transition-all duration-300 ease-in-out ${
-    sidebarOpen ? "ml-44" : "ml-10"
-  } flex-1 overflow-auto -mt-3`}  // Negative margin to lift content up
->
-  {children}
-</main>
+          <main
+            className={`transition-all duration-300 ease-in-out ${
+              collapsed ? "md:ml-16 ml-0" : "md:ml-64 ml-0"
+            } flex-1 overflow-auto pt-14`}
+          >
+            {children}
+          </main>
         </div>
-
-        {/* Footer */}
         {/* <div className="relative z-50">
           <Footer />
         </div> */}

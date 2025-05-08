@@ -59,7 +59,7 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
   };
 
   return (
-    <div className="flex gap-2 ml-4">
+    <div className="flex gap-2 ml-4 -mt-10">
       <Button
         onClick={handleCreateClick}
         isDisabled={isCreating}

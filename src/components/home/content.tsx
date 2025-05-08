@@ -20,9 +20,9 @@ export const Content = () => {
   const cardBg = isDark ? "bg-gray-900" : "bg-default-100";
 
   return (
-    <Box className={`min-h-screen w-full px-4 py-6 lg:px-12  ${bgColor}`}>
+    <Box className={`min-h-screen w-full px-4 py-6 lg:px-12 -mt-20 ${bgColor}`}>
       <Box className="mb-10">
-        <h3 className={`mb-6 text-center text-2xl font-semibold lg:text-left ${textColor}`}>
+        <h3 className={`mb-6 p-3 text-center text-2xl font-semibold lg:text-left ${textColor}`}>
           Available Balance
         </h3>
         <Flex className="flex-col gap-4 lg:flex-row lg:justify-between">

@@ -34,7 +34,7 @@ export const NavbarWrapper = ({ children }: Props) => {
     >
       <Navbar
         isBordered
-        className={`relative w-full py-2 shadow-lg h-14 ${
+        className={`relative w-full py-2 shadow-lg h-16 ${
           isDark
             ? "border-b border-gray-700 bg-black text-white"
             : "border-b border-gray-300 bg-white text-black"
@@ -77,7 +77,7 @@ export const NavbarWrapper = ({ children }: Props) => {
           <UserDropdown />
         </div>
       </Navbar>
-      <div className="flex-1 overflow-y-auto pt-14 md:pt-0 px-4">{children}</div>
+      <div className="flex-1 overflow-y-auto px-4">{children}</div>
     </Box>
   );
 };

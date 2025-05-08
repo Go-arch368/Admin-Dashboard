@@ -21,12 +21,14 @@ export default function CrudForm() {
     gender: 'Male',
   });
   const [editId, setEditId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchStudents();
   }, []);
 
   async function fetchStudents() {
+    setIsLoading(true);
     try {
       const response = await fetch('/api/students');
       if (!response.ok) throw new Error('Failed to fetch students');
@@ -41,43 +43,38 @@ export default function CrudForm() {
           color: '#fff',
         },
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      if (editId !== null) {
-        const response = await fetch('/api/students', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: editId, ...form }),
-        });
-        if (!response.ok) throw new Error('Failed to update student');
-        toast.success('Student updated successfully', {
-          style: {
-            borderRadius: '10px',
-            background: '#333',
-            color: '#fff',
-          },
-        });
-      } else {
-        const response = await fetch('/api/students', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        });
-        if (!response.ok) throw new Error('Failed to create student');
-        toast.success('Student created successfully', {
-          style: {
-            borderRadius: '10px',
-            background: '#333',
-            color: '#fff',
-          },
-        });
-      }
+      const url = '/api/students';
+      const method = editId !== null ? 'PUT' : 'POST';
+      const body = editId !== null 
+        ? JSON.stringify({ id: editId, ...form }) 
+        : JSON.stringify(form);
 
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+
+      if (!response.ok) throw new Error(`Failed to ${editId !== null ? 'update' : 'create'} student`);
+
+      toast.success(`Student ${editId !== null ? 'updated' : 'created'} successfully`, {
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+      
       setForm({
         name: '',
         email: '',
@@ -88,17 +85,19 @@ export default function CrudForm() {
       await fetchStudents();
     } catch (error) {
       console.error('Error saving student:', error);
-      toast.error('Failed to save student', {
+      toast.error(`Failed to ${editId !== null ? 'update' : 'create'} student`, {
         style: {
           borderRadius: '10px',
           background: '#333',
           color: '#fff',
         },
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  async function handleEdit(student: Student) {
+  function handleEdit(student: Student) {
     setForm({
       name: student.name,
       email: student.email,
@@ -126,12 +125,15 @@ export default function CrudForm() {
       });
 
       if (result.isConfirmed) {
+        setIsLoading(true);
         const response = await fetch('/api/students', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id }),
         });
+
         if (!response.ok) throw new Error('Failed to delete student');
+        
         toast.success('Student deleted successfully', {
           style: {
             borderRadius: '10px',
@@ -150,158 +152,154 @@ export default function CrudForm() {
           color: '#fff',
         },
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <>
-      <div className="container mx-auto my-6 px-6">
-        <Toaster position="top-right" />
-        <h3 className="text-3xl font-extrabold text-center text-gray-900 dark:text-white mb-10">
-          Student Management 
-        </h3>
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Form Section */}
-          <div className="lg:w-[650px] pl-20">
-            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 transition-all duration-300">
-              <h4 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
-                {editId !== null ? 'Update Student' : 'Add New Student'}
-              </h4>
-              <form onSubmit={handleFormSubmit}>
-                <div className="mb-5">
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 transition duration-200"
-                    placeholder="Enter student name"
-                    required
-                  />
-                </div>
-                <div className="mb-5">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 transition duration-200"
-                    placeholder="Enter student email"
-                    required
-                  />
-                </div>
-                <div className="mb-5">
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    type="text"
-                    id="phone"
-                    value={form.phone_number}
-                    onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 transition duration-200"
-                    placeholder="Enter phone number"
-                  />
-                </div>
-                <div className="mb-6">
-                  <label
-                    htmlFor="gender"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Gender
-                  </label>
-                  <select
-                    id="gender"
-                    value={form.gender}
-                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 transition duration-200"
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition duration-300 font-semibold"
-                >
-                  {editId !== null ? 'Update Student' : 'Add Student'}
-                </button>
-              </form>
-            </div>
-          </div>
+    <div className="container mx-auto px-4 py-8">
+      <Toaster position="top-right" />
+      
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
 
-          {/* Table Section */}
-          <div className="lg:w-2/3">
-            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden">
-              
-              <table className="w-full border-collapse">
-                <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+      <h3 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">
+        Student Management
+      </h3>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Form Section */}
+        <div className="lg:w-1/2 xl:w-2/5 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 transition-all duration-300">
+          <h4 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
+            {editId !== null ? 'Update Student' : 'Add New Student'}
+          </h4>
+          
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 transition"
+                placeholder="Student name"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 transition"
+                placeholder="student@example.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                value={form.phone_number}
+                onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 transition"
+                placeholder="+1234567890"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Gender
+              </label>
+              <select
+                id="gender"
+                value={form.gender}
+                onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 transition"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {editId !== null ? 'Update Student' : 'Add Student'}
+            </button>
+          </form>
+        </div>
+
+        {/* Table Section */}
+        <div className="lg:w-1/2 xl:w-3/5 bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-100 dark:bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Phone</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Gender</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {studentdata.length === 0 ? (
                   <tr>
-                    <th className="text-left p-4 text-sm font-semibold">Name</th>
-                    <th className="text-left p-4 text-sm font-semibold">Email</th>
-                    <th className="text-left p-4 text-sm font-semibold">Phone</th>
-                    <th className="text-left p-4 text-sm font-semibold">Gender</th>
-                    <th className="text-left p-4 text-sm font-semibold">Actions</th>
+                    <td colSpan={5} className="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
+                      {isLoading ? 'Loading...' : 'No students found'}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {studentdata.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="p-4 text-center text-gray-500 dark:text-gray-400">
-                        No students found
-                      </td>
-                    </tr>
-                  ) : (
-                    studentdata.map((student, index) => (
-                      <tr
-                        key={student.id}
-                        className={`${
-                          index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
-                        } hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-200`}
-                      >
-                        <td className="p-4 text-gray-900 dark:text-gray-200">{student.name}</td>
-                        <td className="p-4 text-gray-900 dark:text-gray-200">{student.email}</td>
-                        <td className="p-4 text-gray-900 dark:text-gray-200">{student.phone_number}</td>
-                        <td className="p-4 text-gray-900 dark:text-gray-200">{student.gender}</td>
-                        <td className="p-4 flex gap-2">
+                ) : (
+                  studentdata.map((student) => (
+                    <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-200">{student.name}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{student.email}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{student.phone_number}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{student.gender}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm">
+                        <div className="flex space-x-2">
                           <button
                             onClick={() => handleEdit(student)}
-                            className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 dark:bg-yellow-400 dark:hover:bg-yellow-500 transition duration-200 text-sm font-medium"
+                            className="px-3 py-1.5 bg-yellow-500 text-white text-xs font-medium rounded hover:bg-yellow-600 transition"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(student.id!)}
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 dark:bg-red-400 dark:hover:bg-red-500 transition duration-200 text-sm font-medium"
+                            className="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded hover:bg-red-600 transition"
                           >
                             Delete
                           </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

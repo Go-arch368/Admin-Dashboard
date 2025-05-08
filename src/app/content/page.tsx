@@ -6,11 +6,12 @@ import WelcomePage from "@/components/stepper/welcomepage";
 
 
 const Page = () => (
-  <Layout>
-     {/* <ModeToggle/>
-         <StepperComponents/> */}
+
+ 
          <WelcomePage/>
-  </Layout>
+  
+      
+ 
 );
 
 export default Page;
