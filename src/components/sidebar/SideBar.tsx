@@ -20,7 +20,7 @@ export const SidebarWrapper = () => {
       {!collapsed && (
         <div
           className="fixed inset-0 z-10 bg-black/30 dark:bg-black/50 md:hidden"
-          onClick={() => setCollapsed(true)}
+          onClick={() => setCollapsed()}
         />
       )}
       <aside

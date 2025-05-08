@@ -23,7 +23,7 @@ export const NavbarWrapper = ({ children }: Props) => {
     "inline-flex h-9 w-10 items-center justify-center rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-800";
 
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
+    setCollapsed();
   };
 
   return (
