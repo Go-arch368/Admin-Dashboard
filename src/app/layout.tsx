@@ -48,9 +48,9 @@ export default function RootLayout({
               </SignedIn>
             </header>
             <ClientLayout>{children}</ClientLayout>
-              <div className="relative z-50">
+              {/* <div className="relative z-50">
                       <Footer />
-                    </div>
+                    </div> */}
           </ThemeProvider>
         </body>
       </html>

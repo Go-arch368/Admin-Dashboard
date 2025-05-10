@@ -60,9 +60,9 @@ export const Layout = ({ children }: Props) => {
             {children}
           </main>
         </div>
-        {/* <div className="relative z-50">
+        <div className="relative z-50">
           <Footer />
-        </div> */}
+        </div>
       </div>
     </SidebarContext.Provider>
   );
