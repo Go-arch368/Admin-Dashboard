@@ -5,11 +5,11 @@ import StepperComponents from "@/components/stepper/stepperComponents";
 export default function Services(){
   return(
     <>
-    <Layout>
+    
       {/* <ModeToggle/>
       <StepperComponents/> */}
       <ServicesPage/>
-    </Layout>
+   
     </>
   )
 }

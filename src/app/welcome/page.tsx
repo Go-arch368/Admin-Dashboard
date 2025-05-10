@@ -5,11 +5,11 @@ import WelcomePage from "@/components/stepper/welcomepage";
 export default function Welcome(){
   return(
     <>
-    <Layout>
+   
       {/* <ModeToggle/>
       <StepperComponents/> */}
       <WelcomePage/>
-    </Layout>
+
     </>
   )
 }

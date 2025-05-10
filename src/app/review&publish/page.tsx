@@ -5,11 +5,11 @@ import StepperComponents from "@/components/stepper/stepperComponents";
 export default function ReviewndPublish(){
   return(
     <>
-    <Layout>
+  
       {/* <ModeToggle/>
       <StepperComponents/> */}
       <ReviewAndPublishPage/>
-    </Layout>
+ 
     </>
   )
 }

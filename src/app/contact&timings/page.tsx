@@ -5,11 +5,11 @@ import StepperComponents from "@/components/stepper/stepperComponents";
 export default function ContactndTimings(){
   return(
     <>
-    <Layout>
+ 
       {/* <ModeToggle/>
       <StepperComponents/> */}
       <ContactAndTimings/>
-    </Layout>
+    
     </>
   )
 }

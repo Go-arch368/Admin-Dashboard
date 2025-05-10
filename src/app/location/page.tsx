@@ -5,11 +5,11 @@ import StepperComponents from "@/components/stepper/stepperComponents";
 export default function Location(){
   return(
     <>
-    <Layout>
+
       {/* <ModeToggle/>
       <StepperComponents/> */}
       <LocationPage/>
-    </Layout>
+  
     </>
   )
 }
