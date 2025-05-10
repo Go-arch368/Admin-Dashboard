@@ -158,7 +158,7 @@ export default function CrudForm() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 -mt-16">
       <Toaster position="top-right" />
       
       {isLoading && (
@@ -167,7 +167,7 @@ export default function CrudForm() {
         </div>
       )}
 
-      <h3 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">
+      <h3 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8 -mt-10">
         Student Management
       </h3>
 
