@@ -3,12 +3,25 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import fallbackData from "@/datas/category and subcategory.json";
 
-interface WelcomeData {
-  category: string;
-  subcategory: string;
-}
+// Zod schema
+const welcomeSchema = z.object({
+  category: z.string().min(1, "Please select a category"),
+  subcategory: z.string().min(1, "Please select a subcategory")
+}).refine(data => {
+  // Custom validation to ensure subcategory belongs to selected category
+  const categoryObj = fallbackData.find((cat: any) => cat.category === data.category);
+  return categoryObj ? categoryObj.subcategories.includes(data.subcategory) : false;   
+}, {
+  message: "Selected subcategory doesn't belong to the chosen category", 
+  path: ["subcategory"]  
+});
+
+type WelcomeFormData = z.infer<typeof welcomeSchema>;
 
 interface CategoryData {
   category: string;
@@ -16,7 +29,7 @@ interface CategoryData {
 }
 
 interface ApiResponse {
-  welcome?: WelcomeData;
+  welcome?: WelcomeFormData;
   publish?: boolean;
 }
 
@@ -33,15 +46,28 @@ function getStoredData<T>(key: string, defaultValue: T): T {
 export default function Welcome() {
   const router = useRouter();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+    trigger
+  } = useForm<WelcomeFormData>({
+    resolver: zodResolver(welcomeSchema),
+    mode: "onChange"
+  });
+
+  const selectedCategory = watch("category");
+  const selectedSubcategory = watch("subcategory");
 
   useEffect(() => {
     setCategoryData(fallbackData as CategoryData[]);
 
-    const storedFormData = getStoredData<WelcomeData>("welcomeFormData", {
+    const storedFormData = getStoredData<WelcomeFormData>("welcomeFormData", {
       category: "",
       subcategory: "",
     });
@@ -49,41 +75,41 @@ export default function Welcome() {
     const storedApiResponse = getStoredData<ApiResponse>("apiResponse", {});
 
     if (storedApiResponse.publish && storedApiResponse.welcome) {
-      setSelectedCategory(storedApiResponse.welcome.category || "");
-      setSelectedSubcategory(storedApiResponse.welcome.subcategory || "");
+      setValue("category", storedApiResponse.welcome.category || "");
+      setValue("subcategory", storedApiResponse.welcome.subcategory || "");
       setIsReadOnly(true);
       setIsEditing(false);
     } else if (storedFormData.category && storedFormData.subcategory) {
-      setSelectedCategory(storedFormData.category);
-      setSelectedSubcategory(storedFormData.subcategory);
+      setValue("category", storedFormData.category);
+      setValue("subcategory", storedFormData.subcategory);
       setIsReadOnly(false);
       setIsEditing(true);
     } else {
-      setSelectedCategory("");
-      setSelectedSubcategory("");
+      setValue("category", "");
+      setValue("subcategory", "");
       setIsReadOnly(false);
       setIsEditing(true);
     }
-  }, []);
+  }, [setValue]);
 
   const handleEdit = () => {
     setIsReadOnly(false);
     setIsEditing(true);
     localStorage.setItem("isEditModeActive", "true");
     localStorage.setItem("hasChanges", "true");
-    console.log("Edit mode enabled via Welcome pencil");
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCategory = e.target.value;
-    setSelectedCategory(newCategory);
-    setSelectedSubcategory("");
+    setValue("category", newCategory);
+    setValue("subcategory", "");
+    trigger("subcategory");
     localStorage.setItem("hasChanges", "true");
   };
 
   const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSubcategory = e.target.value;
-    setSelectedSubcategory(newSubcategory);
+    setValue("subcategory", newSubcategory);
     localStorage.setItem("hasChanges", "true");
   };
 
@@ -92,25 +118,8 @@ export default function Welcome() {
     return categoryObj ? categoryObj.subcategories : [];
   };
 
-  const isFormValid = () => {
-    if (!selectedCategory || !selectedSubcategory) return false;
-    const categoryExists = categoryData.some((cat) => cat.category === selectedCategory);
-    const subcategoryExists = getSubcategories().includes(selectedSubcategory);
-    return categoryExists && subcategoryExists;
-  };
-
-  const handleNext = () => {
-    if (!isFormValid()) {
-      alert("Please select a valid category and subcategory.");
-      return;
-    }
-
-    const formData: WelcomeData = {
-      category: selectedCategory,
-      subcategory: selectedSubcategory,
-    };
-
-    localStorage.setItem("welcomeFormData", JSON.stringify(formData));
+  const onSubmit = (data: WelcomeFormData) => {
+    localStorage.setItem("welcomeFormData", JSON.stringify(data));
     localStorage.setItem("hasChanges", "true");
     router.push("/business-info");
   };
@@ -154,68 +163,79 @@ export default function Welcome() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-4 mb-4">
-              <div className="flex-1 min-w-[250px]">
-                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                  Category:
-                  <select
-                    id="category-select"
-                    value={selectedCategory}
-                    onChange={handleCategoryChange}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-                    required
-                    aria-describedby="category-instructions"
-                  >
-                    <option value="">Select a category</option>
-                    {categoryData.map((category, index) => (
-                      <option key={index} value={category.category}>
-                        {category.category}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <span id="category-instructions" className="sr-only">
-                  Select the primary category for your business.
-                </span>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="flex flex-wrap gap-4 mb-4">
+                <div className="flex-1 min-w-[250px]">
+                  <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
+                    Category:
+                    <select
+                      id="category-select"
+                      {...register("category", {
+                        onChange: handleCategoryChange
+                      })}
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                      aria-describedby="category-instructions"
+                    >
+                      <option value="">Select a category</option>
+                      {categoryData.map((category, index) => (
+                        <option key={index} value={category.category}>
+                          {category.category}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {errors.category && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.category.message}
+                    </p>
+                  )}
+                  <span id="category-instructions" className="sr-only">
+                    Select the primary category for your business.
+                  </span>
+                </div>
+                <div className="flex-1 min-w-[250px]">
+                  <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
+                    Subcategory:
+                    <select
+                      id="subcategory-select"
+                      {...register("subcategory", {
+                        onChange: handleSubcategoryChange
+                      })}
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                      disabled={!selectedCategory}
+                      aria-describedby="subcategory-instructions"
+                    >
+                      <option value="">Select a subcategory</option>
+                      {getSubcategories().map((subcat, index) => (
+                        <option key={index} value={subcat}>
+                          {subcat}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {errors.subcategory && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.subcategory.message}
+                    </p>
+                  )}
+                  <span id="subcategory-instructions" className="sr-only">
+                    Select a specific subcategory under the chosen category.
+                  </span>
+                </div>
               </div>
-              <div className="flex-1 min-w-[250px]">
-                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
-                  Subcategory:
-                  <select
-                    id="subcategory-select"
-                    value={selectedSubcategory}
-                    onChange={handleSubcategoryChange}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-                    required
-                    disabled={!selectedCategory}
-                    aria-describedby="subcategory-instructions"
-                  >
-                    <option value="">Select a subcategory</option>
-                    {getSubcategories().map((subcat, index) => (
-                      <option key={index} value={subcat}>
-                        {subcat}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <span id="subcategory-instructions" className="sr-only">
-                  Select a specific subcategory under the chosen category.
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
 
-        <div className="flex justify-end">
-          <Button
-            className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-            color="primary"
-            onClick={handleNext}
-            type="button"
-            disabled={!isFormValid()}
-          >
-            Next
-          </Button>
+              <div className="flex justify-end">
+                <Button
+                  className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  color="primary"
+                  type="submit"
+                  disabled={!isValid}
+                >
+                  Next
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

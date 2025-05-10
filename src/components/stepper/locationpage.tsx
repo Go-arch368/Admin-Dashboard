@@ -1,32 +1,61 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
 import businessData from "@/datas/businessData.json";
 
-const Location = () => {
+
+const locationSchema = z.object({
+  address: z.string().min(1, "Address is required").max(200, "Address must be 200 characters or less"),
+  city: z.string().min(1, "City is required").max(100, "City must be 100 characters or less"),
+  state: z.string().min(1, "State is required").max(100, "State must be 100 characters or less"),
+  postalCode: z
+    .string()
+    .min(1, "Postal code is required")
+    .regex(/^\d{5,10}$/, "Postal code must be 5-10 digits")
+    .max(10, "Postal code must be 10 characters or less"),
+});
+
+
+type LocationFormData = z.infer<typeof locationSchema>;
+
+export default function Location() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
-  const [formData, setFormData] = useState({
+  const [initialData, setInitialData] = useState<LocationFormData>({
     address: "",
     city: "",
     state: "",
     postalCode: "",
   });
-  const [initialData, setInitialData] = useState({
-    address: "",
-    city: "",
-    state: "",
-    postalCode: "",
+
+  // Initialize react-hook-form with Zod resolver
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isValid, isDirty },
+  } = useForm<LocationFormData>({
+    resolver: zodResolver(locationSchema),
+    defaultValues: {
+      address: "",
+      city: "",
+      state: "",
+      postalCode: "",
+    },
   });
 
   useEffect(() => {
     const apiResponse = localStorage.getItem("apiResponse");
     const locationFormData = localStorage.getItem("locationFormData");
 
-    let existingData = null;
+    let existingData: LocationFormData | null = null;
 
     if (locationFormData && locationFormData !== "null") {
       try {
@@ -66,44 +95,37 @@ const Location = () => {
     }
 
     if (existingData) {
-      setFormData(existingData);
+      setValue("address", existingData.address, { shouldValidate: true });
+      setValue("city", existingData.city, { shouldValidate: true });
+      setValue("state", existingData.state, { shouldValidate: true });
+      setValue("postalCode", existingData.postalCode, { shouldValidate: true });
       setInitialData(existingData);
       setHasExistingData(true);
       setIsEditing(false);
     } else {
-      setFormData({
+      const defaultData = {
         address: businessData.subcategories[0].businesses[0].location.address,
         city: businessData.subcategories[0].businesses[0].location.city,
         state: businessData.subcategories[0].businesses[0].location.state,
         postalCode: businessData.subcategories[0].businesses[0].location.postalCode,
-      });
+      };
+      setValue("address", defaultData.address, { shouldValidate: true });
+      setValue("city", defaultData.city, { shouldValidate: true });
+      setValue("state", defaultData.state, { shouldValidate: true });
+      setValue("postalCode", defaultData.postalCode, { shouldValidate: true });
       setIsEditing(true);
       setHasExistingData(false);
     }
-  }, []);
+  }, [setValue]);
 
-  const isFormValid = () => {
-    const { address, city, state, postalCode } = formData;
-    const postalCodeRegex = /^\d{5,10}$/;
-    return (
-      address.trim() !== "" &&
-      city.trim() !== "" &&
-      state.trim() !== "" &&
-      postalCode.trim() !== "" &&
-      postalCodeRegex.test(postalCode.trim())
-    );
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => {
-      const updatedFormData = { ...prev, [name]: value };
+  const onSubmit = (data: LocationFormData) => {
+    try {
       const dataToSave = {
         subcategories: [
           {
             businesses: [
               {
-                location: updatedFormData,
+                location: data,
               },
             ],
           },
@@ -111,47 +133,24 @@ const Location = () => {
       };
       localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
       localStorage.setItem("hasChanges", "true");
-      return updatedFormData;
-    });
+      router.push("/contact&timings");
+    } catch (e) {
+      console.error("Error saving form data:", e);
+      alert("Failed to save location information. Please try again.");
+    }
   };
 
-  const handleNext = () => {
-    if (!isFormValid()) {
-      alert("Please fill in all required fields with valid data (postal code must be 5-10 digits).");
-      return;
-    }
-    const dataToSave = {
-      subcategories: [
-        {
-          businesses: [
-            {
-              location: formData,
-            },
-          ],
-        },
-      ],
-    };
-    localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
-    localStorage.setItem("hasChanges", "true");
+  const handleNextInReadOnly = () => {
+    // In read-only mode, navigate to /contact&timings without saving
     router.push("/contact&timings");
   };
 
   const toggleEdit = () => {
     if (isEditing) {
-      setFormData(initialData);
-      const dataToSave = {
-        subcategories: [
-          {
-            businesses: [
-              {
-                location: initialData,
-              },
-            ],
-          },
-        ],
-      };
-      localStorage.setItem("locationFormData", JSON.stringify(dataToSave));
-      localStorage.setItem("hasChanges", "true");
+      setValue("address", initialData.address, { shouldValidate: true });
+      setValue("city", initialData.city, { shouldValidate: true });
+      setValue("state", initialData.state, { shouldValidate: true });
+      setValue("postalCode", initialData.postalCode, { shouldValidate: true });
     } else {
       localStorage.setItem("isEditModeActive", "true");
       localStorage.setItem("hasChanges", "true");
@@ -188,23 +187,25 @@ const Location = () => {
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
           <div className="mb-4">
             <label htmlFor="address" className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
               Address:
             </label>
             <input
               id="address"
-              name="address"
-              type="text"
-              value={formData.address}
-              onChange={handleInputChange}
+              {...register("address")}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-              } rounded-md focus:ring-2 focus:ring-gray-500`}
+              className={`w-full p-2 rounded-md focus:ring-2 focus:ring-blue-500 ${
+                isReadOnly
+                  ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  : errors.address
+                  ? "border border-red-500"
+                  : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
               placeholder="Enter your business address"
             />
+            {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>}
           </div>
 
           <div className="mb-4">
@@ -213,16 +214,18 @@ const Location = () => {
             </label>
             <input
               id="city"
-              name="city"
-              type="text"
-              value={formData.city}
-              onChange={handleInputChange}
+              {...register("city")}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-              } rounded-md focus:ring-2 focus:ring-gray-500`}
+              className={`w-full p-2 rounded-md focus:ring-2 focus:ring-blue-500 ${
+                isReadOnly
+                  ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  : errors.city
+                  ? "border border-red-500"
+                  : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
               placeholder="Enter your city"
             />
+            {errors.city && <p className="mt-1 text-sm text-red-500">{errors.city.message}</p>}
           </div>
 
           <div className="mb-4">
@@ -231,16 +234,18 @@ const Location = () => {
             </label>
             <input
               id="state"
-              name="state"
-              type="text"
-              value={formData.state}
-              onChange={handleInputChange}
+              {...register("state")}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-              } rounded-md focus:ring-2 focus:ring-gray-500`}
+              className={`w-full p-2 rounded-md focus:ring-2 focus:ring-blue-500 ${
+                isReadOnly
+                  ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  : errors.state
+                  ? "border border-red-500"
+                  : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
               placeholder="Enter your state"
             />
+            {errors.state && <p className="mt-1 text-sm text-red-500">{errors.state.message}</p>}
           </div>
 
           <div className="mb-4">
@@ -249,22 +254,24 @@ const Location = () => {
             </label>
             <input
               id="postalCode"
-              name="postalCode"
-              type="text"
-              value={formData.postalCode}
-              onChange={handleInputChange}
+              {...register("postalCode")}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${
-                isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-              } rounded-md focus:ring-2 focus:ring-gray-500`}
+              className={`w-full p-2 rounded-md focus:ring-2 focus:ring-blue-500 ${
+                isReadOnly
+                  ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  : errors.postalCode
+                  ? "border border-red-500"
+                  : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
               placeholder="Enter your postal code"
             />
+            {errors.postalCode && <p className="mt-1 text-sm text-red-500">{errors.postalCode.message}</p>}
           </div>
-        </div>
+        </form>
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
-            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-gray-500"
+            className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
             onClick={() => router.push("/business-info")}
           >
             Back
@@ -272,7 +279,7 @@ const Location = () => {
 
           {isEditing && hasExistingData && (
             <Button
-              className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-gray-500"
+              className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
               onClick={toggleEdit}
             >
               Cancel
@@ -282,8 +289,8 @@ const Location = () => {
           <Button
             className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             color="primary"
-            onClick={handleNext}
-            disabled={!isFormValid()}
+            onClick={isReadOnly ? handleNextInReadOnly : handleSubmit(onSubmit)}
+            disabled={!isReadOnly && !isValid}
           >
             {isReadOnly ? "Next" : "Save & Next"}
           </Button>
@@ -291,6 +298,4 @@ const Location = () => {
       </div>
     </main>
   );
-};
-
-export default Location;
+}

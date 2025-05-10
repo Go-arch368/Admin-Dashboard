@@ -1,28 +1,51 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
 import businessData from "@/datas/businessData.json";
+
+// Define Zod schema for form validation
+const businessSchema = z.object({
+  businessName: z.string().min(1, "Business name is required").max(100, "Business name must be 100 characters or less"),
+  description: z.string().min(1, "Description is required").max(500, "Description must be 500 characters or less"),
+});
+
+// Type for form data inferred from Zod schema
+type BusinessFormData = z.infer<typeof businessSchema>;
 
 export default function BusinessInformation() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
-  const [formData, setFormData] = useState({
+  const [initialData, setInitialData] = useState<BusinessFormData>({
     businessName: "",
     description: "",
   });
-  const [initialData, setInitialData] = useState({
-    businessName: "",
-    description: "",
+
+  // Initialize react-hook-form with Zod resolver
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isValid, isDirty },
+  } = useForm<BusinessFormData>({
+    resolver: zodResolver(businessSchema),
+    defaultValues: {
+      businessName: "",
+      description: "",
+    },
   });
 
   useEffect(() => {
     const businessFormData = localStorage.getItem("businessFormData");
     const apiResponse = localStorage.getItem("apiResponse");
 
-    let existingData = null;
+    let existingData: BusinessFormData | null = null;
 
     if (businessFormData && businessFormData !== "null") {
       try {
@@ -51,59 +74,55 @@ export default function BusinessInformation() {
     }
 
     if (existingData) {
-      setFormData({
-        businessName: existingData.businessName,
-        description: existingData.description,
-      });
-      setInitialData({
-        businessName: existingData.businessName,
-        description: existingData.description,
-      });
+      setValue("businessName", existingData.businessName, { shouldValidate: true });
+      setValue("description", existingData.description, { shouldValidate: true });
+      setInitialData(existingData);
       setHasExistingData(true);
       setIsEditing(false);
     } else {
-      setFormData({
+      const defaultData = {
         businessName: businessData.subcategories[0].businesses[0].businessName,
         description: businessData.subcategories[0].businesses[0].description,
-      });
+      };
+      setValue("businessName", defaultData.businessName, { shouldValidate: true });
+      setValue("description", defaultData.description, { shouldValidate: true });
       setIsEditing(true);
       setHasExistingData(false);
     }
-  }, []);
+  }, [setValue]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    localStorage.setItem("hasChanges", "true");
+  const onSubmit = (data: BusinessFormData) => {
+    try {
+      const dataToSave = {
+        subcategories: [
+          {
+            businesses: [
+              {
+                businessName: data.businessName,
+                description: data.description,
+              },
+            ],
+          },
+        ],
+      };
+      localStorage.setItem("businessFormData", JSON.stringify(dataToSave));
+      localStorage.setItem("hasChanges", "true");
+      router.push("/location");
+    } catch (e) {
+      console.error("Error saving form data:", e);
+      alert("Failed to save business information. Please try again.");
+    }
   };
 
-  const isFormValid = () => formData.businessName.trim() !== "" && formData.description.trim() !== "";
-
-  const handleNext = () => {
-    if (!isFormValid()) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-    const dataToSave = {
-      subcategories: [
-        {
-          businesses: [
-            {
-              businessName: formData.businessName,
-              description: formData.description,
-            },
-          ],
-        },
-      ],
-    };
-    localStorage.setItem("businessFormData", JSON.stringify(dataToSave));
-    localStorage.setItem("hasChanges", "true");
+  const handleNextInReadOnly = () => {
+    // In read-only mode, navigate to /location without saving if no changes
     router.push("/location");
   };
 
   const toggleEdit = () => {
     if (isEditing) {
-      setFormData(initialData);
+      setValue("businessName", initialData.businessName, { shouldValidate: true });
+      setValue("description", initialData.description, { shouldValidate: true });
     } else {
       localStorage.setItem("isEditModeActive", "true");
       localStorage.setItem("hasChanges", "true");
@@ -140,7 +159,7 @@ export default function BusinessInformation() {
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
           <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Basic Information</h3>
 
           <div className="mb-4">
@@ -149,14 +168,20 @@ export default function BusinessInformation() {
             </label>
             <input
               id="businessName"
-              name="businessName"
-              type="text"
-              value={formData.businessName}
-              onChange={handleInputChange}
+              {...register("businessName")}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"} rounded-md focus:ring-2 focus:ring-blue-500`}
+              className={`w-full p-2 rounded-md focus:ring-2 focus:ring-blue-500 ${
+                isReadOnly
+                  ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  : errors.businessName
+                  ? "border border-red-500"
+                  : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
               placeholder="Enter your business name"
             />
+            {errors.businessName && (
+              <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
+            )}
           </div>
 
           <div>
@@ -165,15 +190,22 @@ export default function BusinessInformation() {
             </label>
             <textarea
               id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
+              {...register("description")}
               readOnly={isReadOnly}
-              className={`w-full p-2 ${isReadOnly ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100" : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"} rounded-md h-24 focus:ring-2 focus:ring-blue-500`}
+              className={`w-full p-2 rounded-md h-24 focus:ring-2 focus:ring-blue-500 ${
+                isReadOnly
+                  ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  : errors.description
+                  ? "border border-red-500"
+                  : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
               placeholder="Describe your business"
             />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+            )}
           </div>
-        </div>
+        </form>
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
@@ -195,8 +227,8 @@ export default function BusinessInformation() {
           <Button
             className="w-full sm:w-auto focus:ring-2 focus:ring-blue-500 bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             color="primary"
-            onClick={handleNext}
-            disabled={!isFormValid()}
+            onClick={isReadOnly ? handleNextInReadOnly : handleSubmit(onSubmit)}
+            disabled={!isReadOnly && !isValid}
           >
             {isReadOnly ? "Next" : "Save & Next"}
           </Button>
