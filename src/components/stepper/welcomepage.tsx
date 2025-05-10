@@ -8,13 +8,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import fallbackData from "@/datas/category and subcategory.json";
 
-// Zod schema
+// Define CategoryData interface (already present in your code)
+interface CategoryData {
+  category: string;
+  subcategories: string[];
+}
+
+// Zod schema 
 const welcomeSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   subcategory: z.string().min(1, "Please select a subcategory")
 }).refine(data => {
   // Custom validation to ensure subcategory belongs to selected category
-  const categoryObj = fallbackData.find((cat: any) => cat.category === data.category);
+  const categoryObj = fallbackData.find((cat: CategoryData) => cat.category === data.category);
   return categoryObj ? categoryObj.subcategories.includes(data.subcategory) : false;   
 }, {
   message: "Selected subcategory doesn't belong to the chosen category", 
@@ -22,11 +28,6 @@ const welcomeSchema = z.object({
 });
 
 type WelcomeFormData = z.infer<typeof welcomeSchema>;
-
-interface CategoryData {
-  category: string;
-  subcategories: string[];
-}
 
 interface ApiResponse {
   welcome?: WelcomeFormData;

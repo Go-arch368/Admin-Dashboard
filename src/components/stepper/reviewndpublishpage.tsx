@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
-import businessData from "@/datas/businessData.json";
 import axios from "axios";
+import businessData from "@/datas/businessData.json";
+
+const publishedBusinesses: any[] = [];
 
 const countryCodes = [
   { code: "+1", country: "US" },
@@ -101,14 +103,6 @@ interface ApiResponse {
   cta?: CTA;
   publish?: boolean;
 }
-
-const api = axios.create({
-  baseURL: "https://680b2310d5075a76d989f52e.mockapi.io",
-  timeout: 15000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 const areObjectsEqual = (obj1: Record<string, unknown>, obj2: Record<string, unknown>): boolean => {
   if (obj1 === obj2) return true;
@@ -455,52 +449,18 @@ const GalleryFAQsAndCTA = () => {
     setIsPublishing(true);
 
     try {
+      // Retrieve welcome data
       const welcomeFormDataRaw = localStorage.getItem("welcomeFormData") || "{}";
-      const apiResponseRaw = localStorage.getItem("apiResponse") || "{}";
       let welcomeFormData: WelcomeData = { category: "", subcategory: "" };
-      let apiResponse: ApiResponse = {};
 
       try {
         welcomeFormData = JSON.parse(welcomeFormDataRaw) || {};
-        apiResponse = JSON.parse(apiResponseRaw) || {};
       } catch (err) {
-        console.error("Error parsing welcomeFormData or apiResponse:", err);
-        throw new Error("Invalid data in localStorage.");
+        console.error("Error parsing welcomeFormData:", err);
+        throw new Error("Invalid welcome data in localStorage.");
       }
 
-      const category = apiResponse.publish ? apiResponse.welcome?.category?.trim() || "" : welcomeFormData.category?.trim() || "";
-      const subcategory = apiResponse.publish ? apiResponse.welcome?.subcategory?.trim() || "" : welcomeFormData.subcategory?.trim() || "";
-
-      const parsedBusinessFormDataRaw = localStorage.getItem("businessInfoFormData") || "{}";
-      const parsedLocationFormDataRaw = localStorage.getItem("locationFormData") || "{}";
-      const parsedContactAndTimingsFormDataRaw = localStorage.getItem("contactAndTimingsFormData") || "{}";
-      const parsedServicesFormDataRaw = localStorage.getItem("servicesFormData") || "{}";
-
-      let parsedBusinessFormData: FormData = { subcategories: [{ businesses: [] }] };
-      let parsedLocationFormData: { subcategories?: { businesses?: { location: Location }[] }[] } = {
-        subcategories: [{ businesses: [{ location: { address: "", city: "" } }] }],
-      };
-      let parsedContactAndTimingsFormData: {
-        subcategories?: { businesses?: { contact?: Contact; timings?: Timings }[] }[];
-      } = {
-        subcategories: [{ businesses: [{}] }],
-      };
-      let parsedServicesFormData: FormData = { subcategories: [{ businesses: [] }] };
-
-      try {
-        parsedBusinessFormData = JSON.parse(parsedBusinessFormDataRaw) || { subcategories: [{ businesses: [] }] };
-        parsedLocationFormData = JSON.parse(parsedLocationFormDataRaw) || {
-          subcategories: [{ businesses: [{ location: { address: "", city: "" } }] }],
-        };
-        parsedContactAndTimingsFormData = JSON.parse(parsedContactAndTimingsFormDataRaw) || {
-          subcategories: [{ businesses: [{}] }],
-        };
-        parsedServicesFormData = JSON.parse(parsedServicesFormDataRaw) || { subcategories: [{ businesses: [] }] };
-      } catch (err) {
-        console.error("Error parsing localStorage data:", err);
-        throw new Error("Invalid data in localStorage.");
-      }
-
+      // Get current business data
       const parsedCurrentBusiness = formData.subcategories?.[0]?.businesses?.[0] || {
         businessName: "",
         description: "",
@@ -512,73 +472,52 @@ const GalleryFAQsAndCTA = () => {
         faqs: [],
         cta: { call: "", bookUrl: "", getDirections: "" },
       };
-      const contactData =
-        parsedContactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.contact || parsedCurrentBusiness.contact || {};
-      const phone = contactData.phone || "";
-      const email = contactData.email || "";
-      const website = contactData.website || "";
 
-      const completeData: PublishedBusinessData = {
-        welcome: {
-          category,
-          subcategory,
-        },
-        business: {
-          businessName:
-            parsedBusinessFormData.subcategories?.[0]?.businesses?.[0]?.businessName ||
-            parsedCurrentBusiness.businessName ||
-            "",
-          description:
-            parsedBusinessFormData.subcategories?.[0]?.businesses?.[0]?.description ||
-            parsedCurrentBusiness.description ||
-            "",
-        },
-        location:
-          parsedLocationFormData.subcategories?.[0]?.businesses?.[0]?.location || parsedCurrentBusiness.location || {
-            address: "",
-            city: "",
-          },
-        contact: {
-          phone,
-          email,
-          website,
-        },
-        services:
-          parsedServicesFormData.subcategories?.[0]?.businesses?.[0]?.services || parsedCurrentBusiness.services || [],
-        timings:
-          parsedContactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.timings || parsedCurrentBusiness.timings || {},
-        gallery: parsedCurrentBusiness.gallery || [],
-        faqs: parsedCurrentBusiness.faqs || [],
-        cta: {
-          call: parsedCurrentBusiness.cta.call || "",
-          bookUrl: parsedCurrentBusiness.cta.bookUrl || "",
-          getDirections: parsedCurrentBusiness.cta.getDirections || "",
-        },
-        publish: true,
+      // Generate a unique websiteId
+      const generateUniqueId = () => Math.floor(Date.now() + Math.random() * 1000000);
+      const websiteId = generateUniqueId();
+
+      // Construct the API payload
+      const apiPayload = {
+        websiteId: websiteId,
+        websiteName: parsedCurrentBusiness.businessName || "demo",
+        websiteUrl: parsedCurrentBusiness.contact.website || parsedCurrentBusiness.cta.bookUrl || "https://district-business.com",
+        logoUrl: parsedCurrentBusiness.gallery[0] || "https://district-business.com",
+        isFeatured: false,
+        status: "active",
+        categoryId: 1,
+        categoryName: welcomeFormData.category || "software",
+        categorySlug: welcomeFormData.category.toLowerCase().replace(/\s+/g, "-") || "software",
+        subcategoryId: 3,
+        subcategoryName: welcomeFormData.subcategory || "computer",
+        subcategorySlug: welcomeFormData.subcategory.toLowerCase().replace(/\s+/g, "-") || "computer",
+        pincode: parsedCurrentBusiness.location.postalCode ? parseInt(parsedCurrentBusiness.location.postalCode) : 560072,
+        city: parsedCurrentBusiness.location.city || "bengaluru",
+        state: parsedCurrentBusiness.location.state || "karnataka",
       };
 
-      const validationError = validateBusinessData(completeData);
-      if (validationError) {
-        throw new Error(validationError);
-      }
+      // Log the payload for debugging
+      console.log("API Payload:", JSON.stringify(apiPayload, null, 2));
 
-      console.log("Publishing/Updating data:", JSON.stringify(completeData, null, 2));
+      // Create a new axios instance for the direct API call
+      const directApi = axios.create({
+        baseURL: "https://dbapiservice.onrender.com",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
 
-      const lastPublishedBusinessId = localStorage.getItem("lastPublishedBusinessId");
-      let response;
-      if (lastPublishedBusinessId && isPublished) {
-        response = await api.put(`/data/${lastPublishedBusinessId}`, completeData);
-      } else {
-        response = await api.post("/data", completeData);
-        localStorage.setItem("lastPublishedBusinessId", response.data.id);
-        console.log("New business published with ID:", response.data.id);
-      }
+      // Post the data to the API
+      const response = await directApi.post("/dbapis/v1/websites", apiPayload);
 
+      console.log("API Response:", response.data);
+
+      // Update localStorage and state
       localStorage.setItem(PUBLISH_FORM_DATA_KEY, JSON.stringify({ published: true }));
       localStorage.setItem(EDIT_MODE_KEY, "false");
       localStorage.setItem(HAS_CHANGES_KEY, "false");
-      localStorage.setItem(BUSINESS_DATA_KEY, JSON.stringify(completeData));
-      localStorage.setItem("apiResponse", JSON.stringify(completeData));
+      localStorage.setItem("lastPublishedBusinessId", websiteId.toString());
       localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
       localStorage.setItem(CALL_COUNTRY_CODE_KEY, callCountryCode);
 
@@ -586,22 +525,23 @@ const GalleryFAQsAndCTA = () => {
       setIsEditMode(false);
       setHasChanges(false);
 
-      alert(isPublished ? "Business updated successfully!" : "Business published successfully!");
+      alert("Business published successfully!");
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch (error) {
-      console.error("Error publishing/updating business:", error);
-      let errorMessage = "Failed to publish/update business. Please try again.";
+      console.error("Error publishing business:", error);
+      let errorMessage = "Failed to publish business. Please try again.";
       if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", {
+        console.error("Axios Error Details:", {
           status: error.response?.status,
           data: error.response?.data,
           message: error.message,
         });
-        errorMessage =
-          error.response?.data?.message ||
-          `Server error (${error.response?.status || "unknown"}). Please try again.`;
+        errorMessage = error.response?.data?.message || error.message;
+        if (error.response?.status === 0) {
+          errorMessage = "Network Error: Unable to reach the server. Please check your connection.";
+        }
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -907,9 +847,9 @@ const GalleryFAQsAndCTA = () => {
               onClick={handlePublishOrUpdate}
               type="button"
               disabled={isPublishing || !hasChanges}
-              aria-label={isPublishing ? "Publishing/Updating in progress" : isPublished ? "Update business" : "Publish business"}
+              aria-label={isPublishing ? "Publishing in progress" : "Publish business"}
             >
-              {isPublishing ? "Processing..." : isPublished ? "Update" : "Publish"}
+              {isPublishing ? "Processing..." : "Publish"}
             </Button>
           )}
         </div>
