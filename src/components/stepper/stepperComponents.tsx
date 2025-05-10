@@ -1,3 +1,4 @@
+
 "use client";
 import clsx from "clsx";
 import React, { useState, useEffect } from "react";
@@ -86,13 +87,13 @@ const steps: Step[] = [
     storageKey: "welcomeFormData",
     apiResponseKey: "welcome",
   },
-  {
-    label: "Business Info",
-    path: "/business-info",
-    icon: Briefcase,
-    storageKey: "businessInfoFormData",
-    apiResponseKey: "business",
-  },
+  // {
+  //   label: "Business Info",
+  //   path: "/business-info",
+  //   icon: Briefcase,
+  //   storageKey: "businessInfoFormData",
+  //   apiResponseKey: "business",
+  // },
   {
     label: "Location",
     path: "/location",
@@ -137,7 +138,14 @@ export default function Stepper() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+
+    // Check forceCreateMode and redirect to /welcome if set
+    const forceCreateMode = localStorage.getItem('forceCreateMode');
+    if (forceCreateMode === 'true' && pathname !== '/welcome') {
+      localStorage.removeItem('forceCreateMode'); // Clear immediately to prevent loops
+      router.push('/welcome');
+    }
+  }, [pathname, router]);
 
   const checkData = React.useCallback(() => {
     if (!isMounted) return;

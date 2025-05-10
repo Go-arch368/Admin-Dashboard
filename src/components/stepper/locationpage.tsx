@@ -272,7 +272,7 @@ export default function Location() {
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button
             className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
-            onClick={() => router.push("/business-info")}
+            onClick={() => router.push("/welcome")}
           >
             Back
           </Button>

@@ -1,7 +1,9 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@heroui/button';
 import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ModeToggleProps {
   initialHasData?: boolean;
@@ -11,6 +13,7 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const [hasData, setHasData] = useState(initialHasData);
   const [isCreating, setIsCreating] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const checkForData = () => {
@@ -53,9 +56,12 @@ export function ModeToggle({ initialHasData = false }: ModeToggleProps) {
     setMode('create');
     setHasData(false);
 
+    // Navigate to /welcome before reload
+    router.push('/welcome');
+    
     setTimeout(() => {
       window.location.reload();
-    }, 1000);
+    }, 500); // Reduced delay for smoother experience
   };
 
   return (

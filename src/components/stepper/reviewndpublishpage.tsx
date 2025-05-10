@@ -1,12 +1,12 @@
+
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Pencil } from "lucide-react";
-import axios from "axios";
 import businessData from "@/datas/businessData.json";
-
-//const publishedBusinesses: any[] = [];
+import axios from "axios";
 
 const countryCodes = [
   { code: "+1", country: "US" },
@@ -57,6 +57,11 @@ interface Timings {
   [key: string]: string;
 }
 
+interface WelcomeData {
+  category: string;
+  subcategory: string;
+}
+
 interface Business {
   businessName: string;
   description: string;
@@ -73,11 +78,6 @@ interface FormData {
   subcategories?: {
     businesses?: Business[];
   }[];
-}
-
-interface WelcomeData {
-  category: string;
-  subcategory: string;
 }
 
 interface PublishedBusinessData {
@@ -103,6 +103,14 @@ interface ApiResponse {
   cta?: CTA;
   publish?: boolean;
 }
+
+const api = axios.create({
+  baseURL: "https://680b2310d5075a76d989f52e.mockapi.io",
+  timeout: 15000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 const areObjectsEqual = (obj1: Record<string, unknown>, obj2: Record<string, unknown>): boolean => {
   if (obj1 === obj2) return true;
@@ -188,7 +196,12 @@ const GalleryFAQsAndCTA = () => {
     if (initialized || typeof window === "undefined") return;
 
     const publishFormData = localStorage.getItem(PUBLISH_FORM_DATA_KEY);
-    const parsedIsPublished = publishFormData ? JSON.parse(publishFormData).published : false;
+    let parsedIsPublished = false;
+    try {
+      parsedIsPublished = publishFormData ? JSON.parse(publishFormData).published : false;
+    } catch (err) {
+      console.error("Error parsing publishFormData:", err);
+    }
     const editMode = localStorage.getItem(EDIT_MODE_KEY) === "true";
     const globalChanges = localStorage.getItem(HAS_CHANGES_KEY) === "true";
     setIsEditMode(editMode || !parsedIsPublished);
@@ -198,7 +211,6 @@ const GalleryFAQsAndCTA = () => {
     console.log("Initialization:", { parsedIsPublished, isEditMode: editMode || !parsedIsPublished, hasChanges: globalChanges });
 
     let parsedApiResponse: ApiResponse = {};
-
     const apiResponse = localStorage.getItem("apiResponse");
     if (apiResponse && apiResponse !== "{}" && apiResponse !== '""') {
       try {
@@ -449,18 +461,55 @@ const GalleryFAQsAndCTA = () => {
     setIsPublishing(true);
 
     try {
-      // Retrieve welcome data
       const welcomeFormDataRaw = localStorage.getItem("welcomeFormData") || "{}";
+      const apiResponseRaw = localStorage.getItem("apiResponse") || "{}";
       let welcomeFormData: WelcomeData = { category: "", subcategory: "" };
+      let apiResponse: ApiResponse = {};
 
       try {
         welcomeFormData = JSON.parse(welcomeFormDataRaw) || {};
+        apiResponse = JSON.parse(apiResponseRaw) || {};
       } catch (err) {
-        console.error("Error parsing welcomeFormData:", err);
-        throw new Error("Invalid welcome data in localStorage.");
+        console.error("Error parsing welcomeFormData or apiResponse:", err);
+        throw new Error("Invalid data in localStorage.");
       }
 
-      // Get current business data
+      const category = apiResponse.publish ? apiResponse.welcome?.category?.trim() || "" : welcomeFormData.category?.trim() || "";
+      const subcategory = apiResponse.publish ? apiResponse.welcome?.subcategory?.trim() || "" : welcomeFormData.subcategory?.trim() || "";
+      if (!category || !subcategory) {
+        throw new Error("Category and subcategory must be provided.");
+      }
+
+      const parsedBusinessFormDataRaw = localStorage.getItem("businessInfoFormData") || "{}";
+      const parsedLocationFormDataRaw = localStorage.getItem("locationFormData") || "{}";
+      const parsedContactAndTimingsFormDataRaw = localStorage.getItem("contactAndTimingsFormData") || "{}";
+      const parsedServicesFormDataRaw = localStorage.getItem("servicesFormData") || "{}";
+
+      let parsedBusinessFormData: FormData = { subcategories: [{ businesses: [] }] };
+      let parsedLocationFormData: { subcategories?: { businesses?: { location: Location }[] }[] } = {
+        subcategories: [{ businesses: [{ location: { address: "", city: "" } }] }],
+      };
+      let parsedContactAndTimingsFormData: {
+        subcategories?: { businesses?: { contact?: Contact; timings?: Timings }[] }[];
+      } = {
+        subcategories: [{ businesses: [{}] }],
+      };
+      let parsedServicesFormData: FormData = { subcategories: [{ businesses: [] }] };
+
+      try {
+        parsedBusinessFormData = JSON.parse(parsedBusinessFormDataRaw) || { subcategories: [{ businesses: [] }] };
+        parsedLocationFormData = JSON.parse(parsedLocationFormDataRaw) || {
+          subcategories: [{ businesses: [{ location: { address: "", city: "" } }] }],
+        };
+        parsedContactAndTimingsFormData = JSON.parse(parsedContactAndTimingsFormDataRaw) || {
+          subcategories: [{ businesses: [{}] }],
+        };
+        parsedServicesFormData = JSON.parse(parsedServicesFormDataRaw) || { subcategories: [{ businesses: [] }] };
+      } catch (err) {
+        console.error("Error parsing localStorage data:", err);
+        throw new Error("Invalid data in localStorage.");
+      }
+
       const parsedCurrentBusiness = formData.subcategories?.[0]?.businesses?.[0] || {
         businessName: "",
         description: "",
@@ -472,52 +521,73 @@ const GalleryFAQsAndCTA = () => {
         faqs: [],
         cta: { call: "", bookUrl: "", getDirections: "" },
       };
+      const contactData =
+        parsedContactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.contact || parsedCurrentBusiness.contact || {};
+      const phone = contactData.phone || "";
+      const email = contactData.email || "";
+      const website = contactData.website || "";
 
-      // Generate a unique websiteId
-      const generateUniqueId = () => Math.floor(Date.now() + Math.random() * 1000000);
-      const websiteId = generateUniqueId();
-
-      // Construct the API payload
-      const apiPayload = {
-        websiteId: websiteId,
-        websiteName: parsedCurrentBusiness.businessName || "demo",
-        websiteUrl: parsedCurrentBusiness.contact.website || parsedCurrentBusiness.cta.bookUrl || "https://district-business.com",
-        logoUrl: parsedCurrentBusiness.gallery[0] || "https://district-business.com",
-        isFeatured: false,
-        status: "active",
-        categoryId: 1,
-        categoryName: welcomeFormData.category || "software",
-        categorySlug: welcomeFormData.category.toLowerCase().replace(/\s+/g, "-") || "software",
-        subcategoryId: 3,
-        subcategoryName: welcomeFormData.subcategory || "computer",
-        subcategorySlug: welcomeFormData.subcategory.toLowerCase().replace(/\s+/g, "-") || "computer",
-        pincode: parsedCurrentBusiness.location.postalCode ? parseInt(parsedCurrentBusiness.location.postalCode) : 560072,
-        city: parsedCurrentBusiness.location.city || "bengaluru",
-        state: parsedCurrentBusiness.location.state || "karnataka",
+      const completeData: PublishedBusinessData = {
+        welcome: {
+          category,
+          subcategory,
+        },
+        business: {
+          businessName:
+            parsedBusinessFormData.subcategories?.[0]?.businesses?.[0]?.businessName ||
+            parsedCurrentBusiness.businessName ||
+            "",
+          description:
+            parsedBusinessFormData.subcategories?.[0]?.businesses?.[0]?.description ||
+            parsedCurrentBusiness.description ||
+            "",
+        },
+        location:
+          parsedLocationFormData.subcategories?.[0]?.businesses?.[0]?.location || parsedCurrentBusiness.location || {
+            address: "",
+            city: "",
+          },
+        contact: {
+          phone,
+          email,
+          website,
+        },
+        services:
+          parsedServicesFormData.subcategories?.[0]?.businesses?.[0]?.services || parsedCurrentBusiness.services || [],
+        timings:
+          parsedContactAndTimingsFormData.subcategories?.[0]?.businesses?.[0]?.timings || parsedCurrentBusiness.timings || {},
+        gallery: parsedCurrentBusiness.gallery || [],
+        faqs: parsedCurrentBusiness.faqs || [],
+        cta: {
+          call: parsedCurrentBusiness.cta.call || "",
+          bookUrl: parsedCurrentBusiness.cta.bookUrl || "",
+          getDirections: parsedCurrentBusiness.cta.getDirections || "",
+        },
+        publish: true,
       };
 
+      const validationError = validateBusinessData(completeData);
+      if (validationError) {
+        throw new Error(validationError);
+      }
 
-      console.log("API Payload:", JSON.stringify(apiPayload, null, 2));
+      console.log("Publishing/Updating data:", JSON.stringify(completeData, null, 2));
 
-      
-      const directApi = axios.create({
-        baseURL: "https://dbapiservice.onrender.com",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      });
+      const lastPublishedBusinessId = localStorage.getItem("lastPublishedBusinessId");
+      let response;
+      if (lastPublishedBusinessId && isPublished) {
+        response = await api.put(`/data/${lastPublishedBusinessId}`, completeData);
+      } else {
+        response = await api.post("/data", completeData);
+        localStorage.setItem("lastPublishedBusinessId", response.data.id);
+        console.log("New business published with ID:", response.data.id);
+      }
 
-      // Post the data to the API
-      const response = await directApi.post("/dbapis/v1/websites", apiPayload);
-
-      console.log("API Response:", response.data);
-
-      // Update localStorage and state
       localStorage.setItem(PUBLISH_FORM_DATA_KEY, JSON.stringify({ published: true }));
       localStorage.setItem(EDIT_MODE_KEY, "false");
       localStorage.setItem(HAS_CHANGES_KEY, "false");
-      localStorage.setItem("lastPublishedBusinessId", websiteId.toString());
+      localStorage.setItem(BUSINESS_DATA_KEY, JSON.stringify(completeData));
+      localStorage.setItem("apiResponse", JSON.stringify(completeData));
       localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
       localStorage.setItem(CALL_COUNTRY_CODE_KEY, callCountryCode);
 
@@ -525,23 +595,22 @@ const GalleryFAQsAndCTA = () => {
       setIsEditMode(false);
       setHasChanges(false);
 
-      alert("Business published successfully!");
+      alert(isPublished ? "Business updated successfully!" : "Business published successfully!");
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch (error) {
-      console.error("Error publishing business:", error);
-      let errorMessage = "Failed to publish business. Please try again.";
+      console.error("Error publishing/updating business:", error);
+      let errorMessage = "Failed to publish/update business. Please try again.";
       if (axios.isAxiosError(error)) {
-        console.error("Axios Error Details:", {
+        console.error("Axios error details:", {
           status: error.response?.status,
           data: error.response?.data,
           message: error.message,
         });
-        errorMessage = error.response?.data?.message || error.message;
-        if (error.response?.status === 0) {
-          errorMessage = "Network Error: Unable to reach the server. Please check your connection.";
-        }
+        errorMessage =
+          error.response?.data?.message ||
+          `Server error (${error.response?.status || "unknown"}). Please try again.`;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -601,7 +670,7 @@ const GalleryFAQsAndCTA = () => {
           </div>
         )}
 
-        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+        {/* <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
           <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Gallery</h3>
           <div className="mb-4">
             {currentBusiness.gallery.length > 0 ? (
@@ -676,7 +745,7 @@ const GalleryFAQsAndCTA = () => {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
 
         <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
           <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Call to Action</h3>
@@ -785,7 +854,7 @@ const GalleryFAQsAndCTA = () => {
                       handleArrayChange("subcategories.0.businesses.0.faqs", index, "question", e.target.value)
                     }
                     className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 ${
-                      isEditMode ? "focus:ring-2 focus:ring-gray-500" : "bg-gray-100 dark:bg-gray-700"
+                      isEditMode ? "focus:ring-2 focus:ring-gray-500" : " جهانی-100 dark:bg-gray-700"
                     }`}
                     readOnly={!isEditMode}
                   />
@@ -847,9 +916,9 @@ const GalleryFAQsAndCTA = () => {
               onClick={handlePublishOrUpdate}
               type="button"
               disabled={isPublishing || !hasChanges}
-              aria-label={isPublishing ? "Publishing in progress" : "Publish business"}
+              aria-label={isPublishing ? "Publishing/Updating in progress" : isPublished ? "Update business" : "Publish business"}
             >
-              {isPublishing ? "Processing..." : "Publish"}
+              {isPublishing ? "Processing..." : isPublished ? "Update" : "Publish"}
             </Button>
           )}
         </div>
