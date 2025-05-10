@@ -6,7 +6,7 @@ import { Pencil } from "lucide-react";
 import axios from "axios";
 import businessData from "@/datas/businessData.json";
 
-const publishedBusinesses: any[] = [];
+//const publishedBusinesses: any[] = [];
 
 const countryCodes = [
   { code: "+1", country: "US" },
@@ -496,10 +496,10 @@ const GalleryFAQsAndCTA = () => {
         state: parsedCurrentBusiness.location.state || "karnataka",
       };
 
-      // Log the payload for debugging
+
       console.log("API Payload:", JSON.stringify(apiPayload, null, 2));
 
-      // Create a new axios instance for the direct API call
+      
       const directApi = axios.create({
         baseURL: "https://dbapiservice.onrender.com",
         headers: {
